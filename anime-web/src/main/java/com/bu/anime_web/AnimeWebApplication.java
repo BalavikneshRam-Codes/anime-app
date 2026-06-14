@@ -12,7 +12,5 @@ public class AnimeWebApplication {
 
 	public static void main(String[] args) {
 		org.springframework.context.ApplicationContext context = SpringApplication.run(AnimeWebApplication.class, args);
-		AnimeSeriesService animeSeriesService = context.getBean(AnimeSeriesService.class);
-		animeSeriesService.fetchAndSaveEpisodes(1642l);
 	}
 }
