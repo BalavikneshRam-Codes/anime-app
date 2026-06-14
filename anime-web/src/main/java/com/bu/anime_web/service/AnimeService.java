@@ -10,6 +10,9 @@ import com.bu.anime_web.vo.Response.LoadAnimeResponseVO;
 import com.bu.anime_web.vo.Response.RecentAnimeResponseVO;
 import com.bu.anime_web.vo.common.AnimeVO;
 import com.bu.anime_web.vo.common.EpisodeVO;
+import com.bu.anime_web.vo.common.GenreVO;
+import com.bu.anime_web.vo.common.ProducerVO;
+import com.bu.anime_web.vo.common.StudioVO;
 import com.bu.anime_web.vo.common.TermsByType;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,19 +104,40 @@ public class AnimeService {
         vo.setEpisodes(anime.getEpisodesNum());
         
         TermsByType terms = new TermsByType();
-        if (anime.getStudios() != null && !anime.getStudios().isEmpty()) {
-            terms.setStudios(Arrays.asList(anime.getStudios().split(",")));
-        }
-        if (anime.getGenres() != null && !anime.getGenres().isEmpty()) {
-            terms.setGenre(Arrays.asList(anime.getGenres().split(",")));
-        }
         if (anime.getTypes() != null && !anime.getTypes().isEmpty()) {
             terms.setType(Arrays.asList(anime.getTypes().split(",")));
         }
-        if (anime.getProducers() != null && !anime.getProducers().isEmpty()) {
-            terms.setProducers(Arrays.asList(anime.getProducers().split(",")));
-        }
         vo.setTermsByType(terms);
+
+        if (anime.getGenresList() != null && !anime.getGenresList().isEmpty()) {
+            List<GenreVO> genreVOs = anime.getGenresList().stream().map(g -> {
+                GenreVO gvo = new GenreVO();
+                gvo.setId(g.getId());
+                gvo.setName(g.getName());
+                return gvo;
+            }).collect(Collectors.toList());
+            vo.setGenresList(genreVOs);
+        }
+
+        if (anime.getProducerList() != null && !anime.getProducerList().isEmpty()) {
+            List<ProducerVO> producerVOs = anime.getProducerList().stream().map(p -> {
+                ProducerVO pvo = new ProducerVO();
+                pvo.setId(p.getId());
+                pvo.setName(p.getName());
+                return pvo;
+            }).collect(Collectors.toList());
+            vo.setProducerList(producerVOs);
+        }
+
+        if (anime.getStudioList() != null && !anime.getStudioList().isEmpty()) {
+            List<StudioVO> studioVOs = anime.getStudioList().stream().map(s -> {
+                StudioVO svo = new StudioVO();
+                svo.setId(s.getId());
+                svo.setName(s.getName());
+                return svo;
+            }).collect(Collectors.toList());
+            vo.setStudioList(studioVOs);
+        }
 
         return vo;
     }

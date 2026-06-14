@@ -19,16 +19,16 @@ public class Anime {
 
     private String title;
     private String alternative;
-    
+
     @Column(columnDefinition = "TEXT")
     private String titles;
-    
+
     private String nativeTitle;
     private String slug;
     private String rating;
-    
+
     private String poster;
-    
+
     private Integer isSub;
     private Integer isDub;
 
@@ -36,7 +36,7 @@ public class Anime {
     private String description;
     @Version
     private long version;
-    
+
     private String aired;
     private String season;
     private Integer year;
@@ -47,22 +47,34 @@ public class Anime {
     private String episodesNum;
     private String aniId;
     private String source;
-    
+
     private String backgroundImage;
     private String updatedAt;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "anime_studio", // The name of the new junction table in TiDB
+            joinColumns = @JoinColumn(name = "anime_id"),
+            inverseJoinColumns = @JoinColumn(name = "studio_id")
+    )
+    private List<Studio> studioList;
 
-    // Comma-separated strings for lists
-    @Column(columnDefinition = "TEXT")
-    private String studios;
-
-    @Column(columnDefinition = "TEXT")
-    private String genres;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "anime_genres", // The name of the new junction table in TiDB
+            joinColumns = @JoinColumn(name = "anime_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genresList;
 
     @Column(columnDefinition = "TEXT")
     private String types;
-    @Column(columnDefinition = "TEXT")
-    private String producers;
-    
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "anime_producer", // The name of the new junction table in TiDB
+            joinColumns = @JoinColumn(name = "anime_id"),
+            inverseJoinColumns = @JoinColumn(name = "producer_id")
+    )
+    private List<Producer> producerList;
     private Long nextAirScheduleTime;
     private Integer nextAirEp;
     @OneToMany(mappedBy = "anime", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)

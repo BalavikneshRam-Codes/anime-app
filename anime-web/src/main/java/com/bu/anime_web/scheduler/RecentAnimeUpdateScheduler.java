@@ -4,12 +4,18 @@ import com.bu.anime_web.entity.Anime;
 import com.bu.anime_web.repository.AnimeRepository;
 import com.bu.anime_web.service.AnimeSeriesService;
 import com.bu.anime_web.vo.anikotoapi.RecentAnimeResponseVO;
+import com.bu.anime_web.entity.Genre;
+import com.bu.anime_web.entity.Producer;
+import com.bu.anime_web.entity.Studio;
+import com.bu.anime_web.repository.GenreRepository;
+import com.bu.anime_web.repository.ProducerRepository;
+import com.bu.anime_web.repository.StudioRepository;
 import com.bu.anime_web.vo.common.AnimeVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -21,7 +27,10 @@ public class RecentAnimeUpdateScheduler {
 
     private final AnimeRepository animeRepository;
     private final AnimeSeriesService animeSeriesService;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final GenreRepository genreRepository;
+    private final ProducerRepository producerRepository;
+    private final StudioRepository studioRepository;
+    private final RestClient restClient = RestClient.create();
 
     //@Scheduled(fixedRate = 43200000) // 12 hours (2 times a day)
     public void updateRecentAnime() {
@@ -33,7 +42,7 @@ public class RecentAnimeUpdateScheduler {
                 int maxRetries = 3;
                 for (int attempt = 0; attempt < maxRetries; attempt++) {
                     try {
-                        response = restTemplate.getForObject(url, RecentAnimeResponseVO.class);
+                        response = restClient.get().uri(url).retrieve().body(RecentAnimeResponseVO.class);
                         break;
                     } catch (org.springframework.web.client.HttpClientErrorException e) {
                         if (e.getStatusCode().value() == 429) {
@@ -129,13 +138,55 @@ public class RecentAnimeUpdateScheduler {
 
         if (dto.getTermsByType() != null) {
             if (dto.getTermsByType().getGenre() != null) {
-                anime.setGenres(String.join(",", dto.getTermsByType().getGenre()));
+                List<Genre> genres = new ArrayList<>();
+                for (String g : dto.getTermsByType().getGenre()) {
+                    String genreName = g.trim();
+                    if (!genreName.isEmpty()) {
+                        Genre genre = genreRepository.findByName(genreName).orElseGet(() -> {
+                            Genre newGenre = new Genre();
+                            newGenre.setName(genreName);
+                            return genreRepository.save(newGenre);
+                        });
+                        if (!genres.contains(genre)) {
+                            genres.add(genre);
+                        }
+                    }
+                }
+                anime.setGenresList(genres);
             }
             if (dto.getTermsByType().getProducers() != null) {
-                anime.setProducers(String.join(",", dto.getTermsByType().getProducers()));
+                List<Producer> producers = new ArrayList<>();
+                for (String p : dto.getTermsByType().getProducers()) {
+                    String producerName = p.trim();
+                    if (!producerName.isEmpty()) {
+                        Producer producer = producerRepository.findByName(producerName).orElseGet(() -> {
+                            Producer newProducer = new Producer();
+                            newProducer.setName(producerName);
+                            return producerRepository.save(newProducer);
+                        });
+                        if (!producers.contains(producer)) {
+                            producers.add(producer);
+                        }
+                    }
+                }
+                anime.setProducerList(producers);
             }
             if (dto.getTermsByType().getStudios() != null) {
-                anime.setStudios(String.join(",", dto.getTermsByType().getStudios()));
+                List<Studio> studios = new ArrayList<>();
+                for (String s : dto.getTermsByType().getStudios()) {
+                    String studioName = s.trim();
+                    if (!studioName.isEmpty()) {
+                        Studio studio = studioRepository.findByName(studioName).orElseGet(() -> {
+                            Studio newStudio = new Studio();
+                            newStudio.setName(studioName);
+                            return studioRepository.save(newStudio);
+                        });
+                        if (!studios.contains(studio)) {
+                            studios.add(studio);
+                        }
+                    }
+                }
+                anime.setStudioList(studios);
             }
             if (dto.getTermsByType().getType() != null) {
                 anime.setTypes(String.join(",", dto.getTermsByType().getType()));

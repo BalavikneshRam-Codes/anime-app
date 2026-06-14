@@ -55,4 +55,13 @@ public class AnimeVO {
 
     @JsonProperty("episodes_list")
     private java.util.List<EpisodeVO> episodesList;
+
+    @JsonProperty("genres_list")
+    private java.util.List<GenreVO> genresList;
+
+    @JsonProperty("producer_list")
+    private java.util.List<ProducerVO> producerList;
+
+    @JsonProperty("studio_list")
+    private java.util.List<StudioVO> studioList;
 }

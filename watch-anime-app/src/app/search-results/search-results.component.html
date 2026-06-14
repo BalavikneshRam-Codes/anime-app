@@ -101,9 +101,9 @@
 
             <!-- Genres -->
             <div class="flex flex-wrap gap-2 mt-auto">
-              @for (genre of anime.terms_by_type?.genre; track genre) {
+              @for (genre of anime.genres_list; track genre.id) {
                 <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold bg-gray-800 border border-gray-700 text-gray-300 rounded hover:bg-purple-500/30 hover:border-purple-500/50 hover:text-purple-300 transition-colors">
-                  {{ genre }}
+                  {{ genre.name }}
                 </span>
               }
             </div>

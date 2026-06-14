@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public class AnimeSeriesService {
     private EpisodeRepository episodeRepository;
     @Autowired
     private AnimeRepository animeRepository;
-    private  RestTemplate restTemplate = new RestTemplate();
+    private final RestClient restClient = RestClient.create();
 
     public void fetchAndSaveEpisodes(Long animeId) {
         String url = "https://anikotoapi.site/series/" + animeId;
@@ -35,7 +35,7 @@ public class AnimeSeriesService {
             int maxRetries = 3;
             for (int i = 0; i < maxRetries; i++) {
                 try {
-                    response = restTemplate.getForObject(url, SeriesResponseVO.class);
+                    response = restClient.get().uri(url).retrieve().body(SeriesResponseVO.class);
                     break;
                 } catch (org.springframework.web.client.HttpClientErrorException e) {
                     if (e.getStatusCode().value() == 429) {

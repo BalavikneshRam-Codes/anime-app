@@ -139,6 +139,7 @@
 					<workingDirectory>../watch-anime-app</workingDirectory>
 					<nodeVersion>v22.12.0</nodeVersion>
 					<npmVersion>10.2.4</npmVersion>
+					<skip>${skip.frontend}</skip>
 				</configuration>
 				<executions>
 					<execution>

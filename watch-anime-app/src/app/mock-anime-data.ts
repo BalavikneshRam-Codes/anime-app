@@ -15,7 +15,8 @@ export const ANIME_MOCK_DATA = [
       "episodes": "18",
       "terms_by_type": {
           "genre": ["Action", "Adventure", "Fantasy", "Isekai"]
-      }
+      },
+      "genres_list": [{"id": 1, "name": "Action"}, {"id": 2, "name": "Adventure"}, {"id": 3, "name": "Fantasy"}, {"id": 4, "name": "Isekai"}]
   },
   {
       "id": 8745,
@@ -32,7 +33,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/183231-JFjTqQe3rPCw.jpg",
       "terms_by_type": {
           "genre": ["Comedy", "Fantasy", "Slice of Life"]
-      }
+      },
+      "genres_list": [{"id": 5, "name": "Comedy"}, {"id": 3, "name": "Fantasy"}, {"id": 6, "name": "Slice of Life"}]
   },
   {
       "id": 8730,
@@ -46,7 +48,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/187869-EbWPynNeX5VY.jpg",
       "terms_by_type": {
           "genre": ["Comedy", "Romance", "Shoujo Ai", "Slice of Life"]
-      }
+      },
+      "genres_list": [{"id": 5, "name": "Comedy"}, {"id": 7, "name": "Romance"}, {"id": 8, "name": "Shoujo Ai"}, {"id": 6, "name": "Slice of Life"}]
   },
   {
       "id": 8728,
@@ -60,7 +63,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/169228-L0wA8BGp54fa.jpg",
       "terms_by_type": {
           "genre": ["Action", "Adventure", "Drama", "Sci-Fi", "Shounen"]
-      }
+      },
+      "genres_list": [{"id": 1, "name": "Action"}, {"id": 2, "name": "Adventure"}, {"id": 9, "name": "Drama"}, {"id": 10, "name": "Sci-Fi"}, {"id": 11, "name": "Shounen"}]
   },
   {
       "id": 8719,
@@ -74,7 +78,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/202508-K276v0truxE0.jpg",
       "terms_by_type": {
           "genre": ["Drama", "Mystery", "Seinen", "Slice of Life"]
-      }
+      },
+      "genres_list": [{"id": 9, "name": "Drama"}, {"id": 12, "name": "Mystery"}, {"id": 13, "name": "Seinen"}, {"id": 6, "name": "Slice of Life"}]
   },
   {
       "id": 8691,
@@ -88,7 +93,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://cdn.anipixcdn.co/background/14c2f4ab3ad95f50_1778862809.jpg",
       "terms_by_type": {
           "genre": ["Action", "Comedy", "Fantasy", "Isekai", "Shounen"]
-      }
+      },
+      "genres_list": [{"id": 1, "name": "Action"}, {"id": 5, "name": "Comedy"}, {"id": 3, "name": "Fantasy"}, {"id": 4, "name": "Isekai"}, {"id": 11, "name": "Shounen"}]
   },
   {
       "id": 8690,
@@ -102,7 +108,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/170019-r07RiVV5d8rT.jpg",
       "terms_by_type": {
           "genre": ["Romance", "School", "Slice of Life"]
-      }
+      },
+      "genres_list": [{"id": 7, "name": "Romance"}, {"id": 14, "name": "School"}, {"id": 6, "name": "Slice of Life"}]
   },
   {
       "id": 8707,
@@ -116,7 +123,8 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/192808-iaS1GnOo5l3G.jpg",
       "terms_by_type": {
           "genre": ["Comedy", "Fantasy", "Romance", "Slice of Life"]
-      }
+      },
+      "genres_list": [{"id": 5, "name": "Comedy"}, {"id": 3, "name": "Fantasy"}, {"id": 7, "name": "Romance"}, {"id": 6, "name": "Slice of Life"}]
   },
   {
       "id": 8688,
@@ -130,6 +138,7 @@ export const ANIME_MOCK_DATA = [
       "background_image": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/199221-b3W0FfJd4zMy.jpg",
       "terms_by_type": {
           "genre": ["Action", "Adventure", "Comedy", "Sci-Fi", "Shounen"]
-      }
+      },
+      "genres_list": [{"id": 1, "name": "Action"}, {"id": 2, "name": "Adventure"}, {"id": 5, "name": "Comedy"}, {"id": 10, "name": "Sci-Fi"}, {"id": 11, "name": "Shounen"}]
   }
 ];
