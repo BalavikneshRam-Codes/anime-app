@@ -32,11 +32,11 @@ public class RecentAnimeUpdateScheduler {
     private final StudioRepository studioRepository;
     private final RestClient restClient = RestClient.create();
 
-    //@Scheduled(fixedRate = 43200000) // 12 hours (2 times a day)
+    @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Kolkata")//1:00 AM
     public void updateRecentAnime() {
         log.info("Starting scheduled task to fetch recent anime...");
         try {
-            IntStream.rangeClosed(1, 100).forEach(i -> {
+            IntStream.rangeClosed(1, 30).forEach(i -> {
                 String url = String.format("https://anikotoapi.site/recent-anime?page=%d&per_page=100", i);
                 RecentAnimeResponseVO response = null;
                 int maxRetries = 3;
