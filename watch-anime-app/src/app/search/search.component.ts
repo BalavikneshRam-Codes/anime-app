@@ -16,7 +16,7 @@ export class SearchComponent {
   results = signal<any[]>([]);
   loading = signal<boolean>(false);
   showDropdown = signal<boolean>(false);
-  
+
   private http = inject(HttpClient);
   private router = inject(Router);
   private elementRef = inject(ElementRef);
@@ -31,7 +31,7 @@ export class SearchComponent {
 
   onSearchChange(newValue: string) {
     this.query.set(newValue);
-    
+
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
@@ -57,7 +57,7 @@ export class SearchComponent {
       pageSize: 5
     };
 
-    this.http.post<any>('http://localhost:8080/loadAnime', payload).subscribe({
+    this.http.post<any>('/loadAnime', payload).subscribe({
       next: (response) => {
         if (response && response.animeList) {
           this.results.set(response.animeList);
