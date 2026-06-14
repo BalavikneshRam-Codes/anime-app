@@ -1,0 +1,103 @@
+<div class="min-h-screen bg-gray-950 text-white p-8 font-sans selection:bg-purple-500 selection:text-white">
+  <!-- Header -->
+  <header class="mb-16 text-center mt-10 relative z-50">
+    <div class="inline-flex items-center justify-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[11px] font-bold tracking-[0.2em] uppercase shadow-[0_0_15px_rgba(147,51,234,0.15)]">
+      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+      Premium Streaming
+    </div>
+    <h1 class="text-5xl font-black tracking-tight text-white drop-shadow-2xl mb-6">
+      Explore the <span class="text-transparent bg-clip-text bg-gradient-to-br from-purple-400 to-purple-700">Anime Universe</span>
+    </h1>
+    <p class="text-gray-400 max-w-2xl mx-auto text-lg font-medium leading-relaxed mb-10">
+      Immerse yourself in a hand-picked collection of critically acclaimed shows. Experience seamless, high-definition playback with absolutely zero interruptions.
+    </p>
+
+    <!-- Search Bar -->
+    <div class="flex justify-center mb-8 relative z-50">
+      <app-search variant="large"></app-search>
+    </div>
+  </header>
+
+  <!-- Grid -->
+  @if (loading()) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto pb-12">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 shadow-xl flex flex-col h-full animate-pulse">
+          <div class="relative w-full aspect-[3/4] bg-white/5">
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent opacity-100"></div>
+          </div>
+          <div class="p-6 flex-1 flex flex-col relative z-10 -mt-24">
+            <div class="h-6 w-3/4 bg-white/10 rounded mb-3 shadow-sm"></div>
+            <div class="h-3 w-1/2 bg-white/5 rounded mb-5 shadow-sm"></div>
+            <div class="space-y-2 mb-6">
+              <div class="h-2.5 w-full bg-white/5 rounded shadow-sm"></div>
+              <div class="h-2.5 w-full bg-white/5 rounded shadow-sm"></div>
+              <div class="h-2.5 w-4/5 bg-white/5 rounded shadow-sm"></div>
+            </div>
+            <div class="flex gap-2 mt-auto">
+              <div class="h-6 w-12 bg-white/5 rounded shadow-sm"></div>
+              <div class="h-6 w-16 bg-white/5 rounded shadow-sm"></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto pb-12">
+      @for (anime of animeList(); track anime.id) {
+        <div [routerLink]="['/anime', anime.id]" class="group relative rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 ease-in-out hover:-translate-y-2 cursor-pointer flex flex-col h-full">
+          
+          <!-- Image Container -->
+          <div class="relative w-full aspect-[3/4] overflow-hidden">
+            <img [src]="anime.poster" [alt]="anime.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+            
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent opacity-90 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+            <!-- Top Badges -->
+            <div class="absolute top-4 left-4 flex gap-2">
+              @if (anime.score) {
+                <span class="px-2.5 py-1 text-xs font-bold bg-purple-600/90 text-white rounded-md backdrop-blur-md shadow-sm flex items-center gap-1">
+                  ⭐ {{ anime.score }}
+                </span>
+              }
+              @if (anime.rating) {
+                <span class="px-2.5 py-1 text-xs font-bold bg-gray-800/90 text-gray-200 rounded-md backdrop-blur-md shadow-sm">
+                  {{ anime.rating }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Content Area -->
+          <div class="p-6 flex-1 flex flex-col relative z-10 -mt-24">
+            <h2 class="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-purple-400 transition-colors duration-200 drop-shadow-md">
+              {{ anime.title }}
+            </h2>
+            
+            <div class="flex items-center text-xs text-pink-400 font-medium mb-3">
+              <span>{{ anime.season }} {{ anime.year }}</span>
+              <span class="mx-2 text-gray-600">•</span>
+              <span class="text-gray-400">{{ anime.status }}</span>
+            </div>
+
+            <p class="text-gray-400 text-sm line-clamp-3 mb-4 flex-1 transition-colors duration-300 group-hover:text-gray-300">
+              {{ anime.description }}
+            </p>
+
+            <!-- Genres -->
+            <div class="flex flex-wrap gap-2 mt-auto">
+              @for (genre of anime.terms_by_type?.genre; track genre) {
+                <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold bg-gray-800 border border-gray-700 text-gray-300 rounded hover:bg-purple-500/30 hover:border-purple-500/50 hover:text-purple-300 transition-colors">
+                  {{ genre }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

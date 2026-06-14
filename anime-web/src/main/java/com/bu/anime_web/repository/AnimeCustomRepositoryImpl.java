@@ -1,0 +1,91 @@
+package com.bu.anime_web.repository;
+
+import com.bu.anime_web.entity.Anime;
+import com.bu.anime_web.vo.Request.LoadAnimeRequestVO;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+@Component
+public class AnimeCustomRepositoryImpl implements AnimeCustomRepository {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    public Page<Anime> findAnimesWithDynamicFilters(LoadAnimeRequestVO request, Pageable pageable) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Anime> query = cb.createQuery(Anime.class);
+        Root<Anime> anime = query.from(Anime.class);
+
+        List<Predicate> predicates = buildPredicates(request, cb, anime);
+
+        if (!predicates.isEmpty()) {
+            query.where(cb.and(predicates.toArray(new Predicate[0])));
+        }
+
+        // Apply a default sort by 'id' descending to ensure stable pagination
+        query.orderBy(cb.desc(anime.get("id")));
+
+        TypedQuery<Anime> typedQuery = entityManager.createQuery(query);
+
+        // Apply pagination offsets
+        typedQuery.setFirstResult((int) pageable.getOffset());
+        typedQuery.setMaxResults(pageable.getPageSize());
+
+        List<Anime> content = typedQuery.getResultList();
+
+        // Create count query for pagination total
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Anime> countRoot = countQuery.from(Anime.class);
+        countQuery.select(cb.count(countRoot));
+        
+        List<Predicate> countPredicates = buildPredicates(request, cb, countRoot);
+        if (!countPredicates.isEmpty()) {
+            countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
+        }
+        
+        Long total = entityManager.createQuery(countQuery).getSingleResult();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    private List<Predicate> buildPredicates(LoadAnimeRequestVO request, CriteriaBuilder cb, Root<Anime> root) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
+            String titlePattern = "%" + request.getTitle().trim().toLowerCase() + "%";
+            Predicate titleMatch = cb.like(cb.lower(root.get("title")), titlePattern);
+            Predicate titlesMatch = cb.like(cb.lower(root.get("titles")), titlePattern);
+            predicates.add(cb.or(titleMatch, titlesMatch));
+        }
+
+        if (request.getType() != null && !request.getType().trim().isEmpty()) {
+            String typePattern = "%" + request.getType().trim().toLowerCase() + "%";
+            predicates.add(cb.like(cb.lower(root.get("types")), typePattern));
+        }
+
+        if (request.getGenres() != null && !request.getGenres().trim().isEmpty()) {
+            String genrePattern = "%" + request.getGenres().trim().toLowerCase() + "%";
+            predicates.add(cb.like(cb.lower(root.get("genres")), genrePattern));
+        }
+
+        if (request.getSeason() != null && !request.getSeason().trim().isEmpty()) {
+            // Season might be exact match or contains, typically exact is better, but like is safer if formats vary.
+            // Using equals for exact season matching (e.g., "Fall 2024")
+            predicates.add(cb.equal(cb.lower(root.get("season")), request.getSeason().trim().toLowerCase()));
+        }
+
+        return predicates;
+    }
+}
