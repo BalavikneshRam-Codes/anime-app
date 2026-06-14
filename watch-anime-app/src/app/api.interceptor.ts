@@ -1,11 +1,10 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { isDevMode } from '@angular/core';
 
 export const apiInterceptor: HttpInterceptorFn = (req, next) => {
-  // In development (ng serve), route to local Spring Boot.
+  // If we are running locally on port 4200, route to local Spring Boot.
   // In production, keep it relative (e.g. '/fetchAnime') because 
   // Angular and Spring Boot are hosted on the exact same domain!
-  if (isDevMode() && req.url.startsWith('/')) {
+  if (window.location.hostname === 'localhost' && req.url.startsWith('/')) {
     const apiReq = req.clone({
       url: `http://localhost:8080${req.url}`
     });
