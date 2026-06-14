@@ -1,39 +1,29 @@
-# Stage 1: Build the Angular frontend using Node
-FROM node:22-alpine AS frontend-builder
+# Stage 1: Build the entire application (Frontend + Backend) using Maven
+FROM maven:3.9-eclipse-temurin-25 AS builder
 WORKDIR /app
 
-# Copy Angular project files
-COPY watch-anime-app/package*.json ./
-RUN npm install
+# Copy the frontend project
+COPY watch-anime-app/ ./watch-anime-app/
 
-COPY watch-anime-app/ ./
-# Build Angular and output the files directly to a 'static' folder
-RUN npm run build -- --output-path=dist/static
+# Copy the backend project
+COPY anime-web/ ./anime-web/
 
+# Build the project
+WORKDIR /app/anime-web
 
-# Stage 2: Build the Spring Boot backend using Maven
-FROM maven:3.9-eclipse-temurin-25 AS backend-builder
-WORKDIR /app
+# CRITICAL FIX: Delete the old, pre-compiled frontend files that were accidentally 
+# committed to GitHub so they don't override our fresh build!
+RUN rm -rf src/main/webapp/*
 
-# Copy the Spring Boot project
-COPY anime-web/pom.xml .
-COPY anime-web/src ./src
+# Run Maven (this will automatically download Node, build Angular, and package the WAR)
+RUN mvn clean package -DskipTests
 
-# Copy the built Angular files from the Node stage into Spring Boot's static folder
-COPY --from=frontend-builder /app/dist/static ./src/main/resources/static
-
-# Build the Spring Boot application
-# We skip the frontend-maven-plugin because we already built it in Stage 1!
-RUN mvn clean package -DskipTests -Dskip.frontend=true
-
-
-# Stage 3: Create the final lightweight image
+# Stage 2: Create the final lightweight image
 FROM eclipse-temurin:25-jre-alpine
-
 WORKDIR /app
 
 # Copy the executable WAR from the builder stage
-COPY --from=backend-builder /app/target/anime-web-0.0.1-SNAPSHOT.war /app/anime-web.war
+COPY --from=builder /app/anime-web/target/anime-web-0.0.1-SNAPSHOT.war /app/anime-web.war
 
 # Expose the default Spring Boot port
 EXPOSE 8080
