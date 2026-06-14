@@ -17,7 +17,7 @@ export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
 
   ngOnInit() {
-    this.http.post<any>('http://localhost:8080/fetchRecentAnimeList', {}).subscribe({
+    this.http.post<any>('/fetchRecentAnimeList', {}).subscribe({
       next: (response) => {
         if (response && response.animeList) {
           this.animeList.set(response.animeList);

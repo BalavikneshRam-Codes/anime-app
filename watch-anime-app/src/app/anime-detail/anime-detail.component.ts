@@ -16,12 +16,12 @@ export class AnimeDetailComponent implements OnInit {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private sanitizer = inject(DomSanitizer);
-  
+
   anime = signal<any>(null);
   loading = signal<boolean>(true);
   currentEpisode = signal<any>(null);
   selectedServer = signal<'sub' | 'dub'>('sub');
-  
+
   searchQuery = signal<string>('');
   selectedChunkIndex = signal<number>(0);
   isDropdownOpen = signal<boolean>(false);
@@ -42,14 +42,14 @@ export class AnimeDetailComponent implements OnInit {
   displayedEpisodes = computed(() => {
     const list = this.anime()?.episodes_list || [];
     const query = this.searchQuery().trim().toLowerCase();
-    
+
     if (query) {
       return list.filter((ep: any) => ep.order.toString().includes(query) || (ep.title && ep.title.toLowerCase().includes(query)));
     }
-    
+
     const chunks = this.episodeChunks();
     if (chunks.length === 0) return [];
-    
+
     const index = this.selectedChunkIndex();
     const chunk = chunks.find(c => c.index === index) || chunks[0];
     return chunk.episodes;
@@ -78,13 +78,13 @@ export class AnimeDetailComponent implements OnInit {
 
   fetchAnime(animeId: number) {
     this.loading.set(true);
-    this.http.post<any>('http://localhost:8080/fetchAnime', { animeId }).subscribe({
+    this.http.post<any>('/fetchAnime', { animeId }).subscribe({
       next: (res) => {
         this.anime.set(res);
         if (res.episodes_list && res.episodes_list.length > 0) {
           const latestEp = res.episodes_list[res.episodes_list.length - 1];
           this.currentEpisode.set(latestEp);
-          
+
           const chunkIndex = Math.floor((res.episodes_list.length - 1) / 100);
           this.selectedChunkIndex.set(chunkIndex);
         }
@@ -116,13 +116,13 @@ export class AnimeDetailComponent implements OnInit {
     const list = this.anime()?.episodes_list || [];
     const current = this.currentEpisode();
     if (!current || list.length === 0) return;
-    
+
     const idx = list.findIndex((ep: any) => ep.id === current.id);
     if (idx !== -1 && idx < list.length - 1) {
       const nextEp = list[idx + 1];
       this.selectEpisode(nextEp);
-      
-      const chunkIndex = this.episodeChunks().findIndex(chunk => 
+
+      const chunkIndex = this.episodeChunks().findIndex(chunk =>
         chunk.episodes.some((e: any) => e.id === nextEp.id)
       );
       if (chunkIndex !== -1 && this.selectedChunkIndex() !== chunkIndex) {

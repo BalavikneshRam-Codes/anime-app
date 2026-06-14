@@ -13,7 +13,7 @@ export class SearchResultsComponent implements OnInit {
   animeList = signal<any[]>([]);
   loading = signal<boolean>(true);
   query = signal<string>('');
-  
+
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
 
@@ -21,7 +21,7 @@ export class SearchResultsComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const q = params['q'] || '';
       this.query.set(q);
-      
+
       if (q) {
         this.performSearch(q);
       } else {
@@ -39,7 +39,7 @@ export class SearchResultsComponent implements OnInit {
       pageSize: 50
     };
 
-    this.http.post<any>('http://localhost:8080/loadAnime', payload).subscribe({
+    this.http.post<any>('/loadAnime', payload).subscribe({
       next: (response) => {
         if (response && response.animeList) {
           this.animeList.set(response.animeList);
