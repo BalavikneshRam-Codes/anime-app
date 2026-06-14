@@ -1,5 +1,6 @@
 package com.bu.anime_web.scheduler;
 
+import com.bu.anime_web.converter.AnimeConverter;
 import com.bu.anime_web.entity.Anime;
 import com.bu.anime_web.repository.AnimeRepository;
 import com.bu.anime_web.service.AnimeSeriesService;
@@ -13,6 +14,7 @@ import com.bu.anime_web.repository.StudioRepository;
 import com.bu.anime_web.vo.common.AnimeVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -24,13 +26,14 @@ import java.util.stream.IntStream;
 @Component
 @RequiredArgsConstructor
 public class RecentAnimeUpdateScheduler {
-
-    private final AnimeRepository animeRepository;
-    private final AnimeSeriesService animeSeriesService;
-    private final GenreRepository genreRepository;
-    private final ProducerRepository producerRepository;
-    private final StudioRepository studioRepository;
-    private final RestClient restClient = RestClient.create();
+    @Autowired
+    private AnimeRepository animeRepository;
+    @Autowired
+    private AnimeSeriesService animeSeriesService;
+    @Autowired
+    private RestClient restClient;
+    @Autowired
+    private AnimeConverter animeConverter;
 
     @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Kolkata")//1:00 AM
     public void updateRecentAnime() {
@@ -61,18 +64,18 @@ public class RecentAnimeUpdateScheduler {
                 if (response != null && response.isOk() && response.getData() != null) {
                     List<Anime> animesToSave = new ArrayList<>();
                     List<Long> animeIdsToFetchEpisodes = new ArrayList<>();
-                    
+
                     for (AnimeVO dto : response.getData()) {
                         Optional<Anime> existingOpt = animeRepository.findByAnimeId(dto.getId());
                         if (existingOpt.isEmpty()) {
                             Anime newAnime = new Anime();
-                            mapToEntity(dto, newAnime);
+                            animeConverter.mapToEntity(dto, newAnime);
                             animesToSave.add(newAnime);
                             animeIdsToFetchEpisodes.add(dto.getId()); // Needs episodes
                         } else {
                             Anime existingAnime = existingOpt.get();
                             if (!Objects.equals(existingAnime.getUpdatedAt(), dto.getUpdatedAt())) {
-                                mapToEntity(dto, existingAnime);
+                                animeConverter.mapToEntity(dto, existingAnime);
                                 animesToSave.add(existingAnime);
                                 animeIdsToFetchEpisodes.add(dto.getId()); // Needs episodes
                             }
@@ -83,7 +86,7 @@ public class RecentAnimeUpdateScheduler {
                     // Otherwise AnimeSeriesService won't find the parent Anime in the DB!
                     animeRepository.saveAll(animesToSave);
                     log.info("Successfully fetched and saved {} distinct anime records.", animesToSave.size());
-                    
+
                     // Now fetch episodes only for the newly added or updated animes
                     for (Long animeId : animeIdsToFetchEpisodes) {
                         animeSeriesService.fetchAndSaveEpisodes(animeId);
@@ -97,7 +100,7 @@ public class RecentAnimeUpdateScheduler {
                 } else {
                     log.warn("Received empty or invalid response from the API.");
                 }
-                
+
                 // Sleep for 2 seconds between fetching pages to prevent 429 Too Many Requests
                 try {
                     Thread.sleep(2000);
@@ -107,90 +110,6 @@ public class RecentAnimeUpdateScheduler {
             });
         } catch (Exception e) {
             log.error("Error occurred while fetching recent anime data", e);
-        }
-    }
-
-    private void mapToEntity(AnimeVO dto, Anime anime) {
-        anime.setAnimeId(dto.getId());
-        anime.setTitle(dto.getTitle());
-        anime.setAlternative(dto.getAlternative());
-        anime.setTitles(dto.getTitles());
-        anime.setNativeTitle(dto.getNativeTitle());
-        anime.setSlug(dto.getSlug());
-        anime.setRating(dto.getRating());
-        anime.setPoster(dto.getPoster());
-        anime.setIsSub(dto.getIsSub());
-        anime.setDescription(dto.getDescription());
-        anime.setAired(dto.getAired());
-        anime.setSeason(dto.getSeason());
-        anime.setYear(dto.getYear());
-        anime.setDuration(dto.getDuration());
-        anime.setStatus(dto.getStatus());
-        anime.setScore(dto.getScore());
-        anime.setMalId(dto.getMalId());
-        anime.setEpisodesNum(dto.getEpisodes());
-        anime.setAniId(dto.getAniId());
-        anime.setSource(dto.getSource());
-        anime.setBackgroundImage(dto.getBackgroundImage());
-        anime.setUpdatedAt(dto.getUpdatedAt());
-        anime.setNextAirScheduleTime(dto.getNextAirScheduleTime());
-        anime.setNextAirEp(dto.getNextAirEp());
-
-        if (dto.getTermsByType() != null) {
-            if (dto.getTermsByType().getGenre() != null) {
-                List<Genre> genres = new ArrayList<>();
-                for (String g : dto.getTermsByType().getGenre()) {
-                    String genreName = g.trim();
-                    if (!genreName.isEmpty()) {
-                        Genre genre = genreRepository.findByName(genreName).orElseGet(() -> {
-                            Genre newGenre = new Genre();
-                            newGenre.setName(genreName);
-                            return genreRepository.save(newGenre);
-                        });
-                        if (!genres.contains(genre)) {
-                            genres.add(genre);
-                        }
-                    }
-                }
-                anime.setGenresList(genres);
-            }
-            if (dto.getTermsByType().getProducers() != null) {
-                List<Producer> producers = new ArrayList<>();
-                for (String p : dto.getTermsByType().getProducers()) {
-                    String producerName = p.trim();
-                    if (!producerName.isEmpty()) {
-                        Producer producer = producerRepository.findByName(producerName).orElseGet(() -> {
-                            Producer newProducer = new Producer();
-                            newProducer.setName(producerName);
-                            return producerRepository.save(newProducer);
-                        });
-                        if (!producers.contains(producer)) {
-                            producers.add(producer);
-                        }
-                    }
-                }
-                anime.setProducerList(producers);
-            }
-            if (dto.getTermsByType().getStudios() != null) {
-                List<Studio> studios = new ArrayList<>();
-                for (String s : dto.getTermsByType().getStudios()) {
-                    String studioName = s.trim();
-                    if (!studioName.isEmpty()) {
-                        Studio studio = studioRepository.findByName(studioName).orElseGet(() -> {
-                            Studio newStudio = new Studio();
-                            newStudio.setName(studioName);
-                            return studioRepository.save(newStudio);
-                        });
-                        if (!studios.contains(studio)) {
-                            studios.add(studio);
-                        }
-                    }
-                }
-                anime.setStudioList(studios);
-            }
-            if (dto.getTermsByType().getType() != null) {
-                anime.setTypes(String.join(",", dto.getTermsByType().getType()));
-            }
         }
     }
 }

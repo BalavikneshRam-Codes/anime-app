@@ -1,5 +1,6 @@
 package com.bu.anime_web.service;
 
+import com.bu.anime_web.converter.AnimeConverter;
 import com.bu.anime_web.entity.Anime;
 import com.bu.anime_web.repository.AnimeCustomRepository;
 import com.bu.anime_web.repository.AnimeRepository;
@@ -33,6 +34,8 @@ public class AnimeService {
     private AnimeCustomRepository animeCustomRepository;
     @Autowired
     private AnimeRepository animeRepository;
+    @Autowired
+    private AnimeConverter animeConverter;
 
     public RecentAnimeResponseVO fetchRecentAnimeList(RecentAnimeRequestVO recentAnimeRequestVO) {
         int pageNum = 1;
@@ -55,7 +58,7 @@ public class AnimeService {
         Page<Anime> animePage = animeRepository.findAnimeByLatestEpisodeUpdate(pageable);
 
         List<AnimeVO> animeVOList = animePage.getContent().stream()
-                .map(this::mapToAnimeVO)
+                .map(animeConverter::mapToAnimeVO)
                 .collect(Collectors.toList());
 
         RecentAnimeResponseVO response = new RecentAnimeResponseVO();
@@ -85,61 +88,12 @@ public class AnimeService {
         Page<Anime> animePage = animeCustomRepository.findAnimesWithDynamicFilters(loadAnimeRequestVO, pageable);
 
         List<AnimeVO> animeVOList = animePage.getContent().stream()
-                .map(this::mapToAnimeVO)
+                .map(animeConverter::mapToAnimeVO)
                 .collect(Collectors.toList());
 
         LoadAnimeResponseVO response = new LoadAnimeResponseVO();
         response.setAnimeList(animeVOList);
         return response;
-    }
-
-    private AnimeVO mapToAnimeVO(Anime anime) {
-        AnimeVO vo = new AnimeVO();
-        BeanUtils.copyProperties(anime, vo);
-        
-        if (anime.getAnimeId() != null) {
-            vo.setId(anime.getAnimeId());
-        }
-        
-        vo.setEpisodes(anime.getEpisodesNum());
-        
-        TermsByType terms = new TermsByType();
-        if (anime.getTypes() != null && !anime.getTypes().isEmpty()) {
-            terms.setType(Arrays.asList(anime.getTypes().split(",")));
-        }
-        vo.setTermsByType(terms);
-
-        if (anime.getGenresList() != null && !anime.getGenresList().isEmpty()) {
-            List<GenreVO> genreVOs = anime.getGenresList().stream().map(g -> {
-                GenreVO gvo = new GenreVO();
-                gvo.setId(g.getId());
-                gvo.setName(g.getName());
-                return gvo;
-            }).collect(Collectors.toList());
-            vo.setGenresList(genreVOs);
-        }
-
-        if (anime.getProducerList() != null && !anime.getProducerList().isEmpty()) {
-            List<ProducerVO> producerVOs = anime.getProducerList().stream().map(p -> {
-                ProducerVO pvo = new ProducerVO();
-                pvo.setId(p.getId());
-                pvo.setName(p.getName());
-                return pvo;
-            }).collect(Collectors.toList());
-            vo.setProducerList(producerVOs);
-        }
-
-        if (anime.getStudioList() != null && !anime.getStudioList().isEmpty()) {
-            List<StudioVO> studioVOs = anime.getStudioList().stream().map(s -> {
-                StudioVO svo = new StudioVO();
-                svo.setId(s.getId());
-                svo.setName(s.getName());
-                return svo;
-            }).collect(Collectors.toList());
-            vo.setStudioList(studioVOs);
-        }
-
-        return vo;
     }
 
     public AnimeVO fetchAnime(AnimeRequestVO animeRequestVO) {
@@ -150,7 +104,7 @@ public class AnimeService {
         Anime anime = animeRepository.findByAnimeId(animeRequestVO.getAnimeId())
                 .orElseThrow(() -> new IllegalArgumentException("Anime not found with ID: " + animeRequestVO.getAnimeId()));
 
-        AnimeVO vo = mapToAnimeVO(anime);
+        AnimeVO vo = animeConverter.mapToAnimeVO(anime);
 
         if (anime.getEpisodesList() != null && !anime.getEpisodesList().isEmpty()) {
             List<com.bu.anime_web.vo.common.EpisodeVO> episodeVOList = anime.getEpisodesList().stream().map(ep -> {
