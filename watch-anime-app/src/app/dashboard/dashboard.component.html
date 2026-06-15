@@ -1,5 +1,45 @@
-<div class="min-h-screen bg-gray-950 text-white p-8 font-sans selection:bg-purple-500 selection:text-white">
+<div class="min-h-screen bg-gray-950 text-white p-8 font-sans selection:bg-purple-500 selection:text-white relative">
+  
+  <!-- Top Navigation -->
+  <div class="absolute top-8 right-8 z-[100] flex items-center gap-4">
+    @if (!authService.isLoggedIn()) {
+      <a routerLink="/login" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-purple-600/90 backdrop-blur-sm border border-purple-500/50 hover:bg-purple-500 text-white text-sm font-bold tracking-wide shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_30px_rgba(147,51,234,0.5)] hover:-translate-y-0.5 transition-all duration-300">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        Sign In
+      </a>
+    } @else {
+      <!-- Profile Dropdown -->
+      <div class="relative">
+        <button 
+          (click)="toggleProfileDropdown()"
+          class="flex items-center justify-center h-10 w-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 shadow-[0_0_15px_rgba(147,51,234,0.3)] hover:shadow-[0_0_25px_rgba(147,51,234,0.5)] transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-950">
+          <span class="text-white font-bold text-sm">DU</span>
+        </button>
+
+        @if (isProfileDropdownOpen()) {
+          <div class="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-800 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] py-2 overflow-hidden animate-[slideUp_0.1s_ease-out]">
+            <div class="px-4 py-3 border-b border-gray-800">
+              <p class="text-sm text-white font-bold">{{ authService.currentUser()?.name || 'Demo User' }}</p>
+              <p class="text-xs text-gray-400 truncate">{{ authService.currentUser()?.email || 'demo@anime.com' }}</p>
+            </div>
+            <button 
+              (click)="toggleProfileDropdown(); authService.openSignOutModal()"
+              class="w-full text-left px-4 py-2.5 text-sm text-red-400 font-semibold hover:bg-gray-800 hover:text-red-300 transition-colors flex items-center gap-2 mt-1">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sign Out
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
   <!-- Header -->
+
   <header class="mb-16 text-center mt-10 relative z-50">
     <div
       class="inline-flex items-center justify-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[11px] font-bold tracking-[0.2em] uppercase shadow-[0_0_15px_rgba(147,51,234,0.15)]">
@@ -114,3 +154,6 @@
   </div>
   }
 </div>
+
+<!-- Sign Out Modal -->
+<app-sign-out-modal></app-sign-out-modal>

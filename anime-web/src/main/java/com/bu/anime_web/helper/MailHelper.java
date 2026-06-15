@@ -1,0 +1,38 @@
+package com.bu.anime_web.helper;
+
+import com.bu.anime_web.bean.MailSenderBean;
+import com.bu.anime_web.vo.common.AttachmentVO;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Component;
+
+@Component
+public class MailHelper {
+    private static final Logger log = LoggerFactory.getLogger(MailHelper.class);
+    @Autowired
+    private JavaMailSender mailSender;
+
+    public void sendMail(MailSenderBean mailSenderBean) {
+        try {
+            if (mailSenderBean != null) {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setTo(mailSenderBean.getToEmail());
+                helper.setSubject(mailSenderBean.getSubject());
+                helper.setText(mailSenderBean.getBody(), true);
+                if (mailSenderBean.getAttachments() != null && !mailSenderBean.getAttachments().isEmpty())
+                    for (AttachmentVO attachment : mailSenderBean.getAttachments())
+                        if (attachment.getMultipartBytes() != null && attachment.getFileName() != null)
+                            helper.addAttachment(attachment.getFileName(), new ByteArrayResource(attachment.getMultipartBytes()));
+                mailSender.send(message);
+            }
+        } catch (Exception e) {
+            log.error("Error sending email: {}", e.getMessage(), e);
+        }
+    }
+}

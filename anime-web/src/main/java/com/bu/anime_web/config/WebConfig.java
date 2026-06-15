@@ -9,8 +9,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // Forward Angular routes to index.html so the SPA router can handle them
-        registry.addViewController("/search").setViewName("forward:/index.html");
-        registry.addViewController("/anime/{id}").setViewName("forward:/index.html");
+        // We now rely on GlobalExceptionHandler to forward ALL 404 GET requests to index.html universally.
+        // No explicit routing is required here!
     }
 }

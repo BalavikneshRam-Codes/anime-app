@@ -13,7 +13,15 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+    public Object handleNoResourceFoundException(
+            org.springframework.web.servlet.resource.NoResourceFoundException ex,
+            jakarta.servlet.http.HttpServletRequest request) {
+        
+        // If it is a GET request, forward it to the Angular SPA index.html
+        if ("GET".equalsIgnoreCase(request.getMethod())) {
+            return new org.springframework.web.servlet.ModelAndView("forward:/index.html");
+        }
+        
         logger.warn("Resource not found: {}", ex.getMessage());
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),

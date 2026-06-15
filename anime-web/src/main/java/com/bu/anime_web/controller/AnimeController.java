@@ -28,8 +28,4 @@ public class AnimeController {
     public ResponseEntity<AnimeVO> fetchAnime(@RequestBody AnimeRequestVO animeRequestVO) {
         return ResponseEntity.ok(animeService.fetchAnime(animeRequestVO));
     }
-    @GetMapping("/heartBeat")
-    public ResponseEntity<String> heartBeat() {
-        return ResponseEntity.ok("website is live");
-    }
 }

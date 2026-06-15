@@ -4,14 +4,19 @@ import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 
 import { SearchComponent } from '../search/search.component';
+import { AuthService } from '../auth/auth.service';
+import { SignOutModalComponent } from '../auth/sign-out-modal/sign-out-modal.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, SearchComponent],
+  imports: [CommonModule, RouterModule, SearchComponent, SignOutModalComponent],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
+  authService = inject(AuthService);
+  isProfileDropdownOpen = signal<boolean>(false);
+  
   animeList = signal<any[]>([]);
   loading = signal<boolean>(true);
   private http = inject(HttpClient);
@@ -29,5 +34,9 @@ export class DashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  toggleProfileDropdown() {
+    this.isProfileDropdownOpen.update(v => !v);
   }
 }
