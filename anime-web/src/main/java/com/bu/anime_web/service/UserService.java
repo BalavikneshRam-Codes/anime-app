@@ -9,7 +9,6 @@ import com.bu.anime_web.notification.mail.factory.MailFactory;
 import com.bu.anime_web.repository.IUserRepository;
 import com.bu.anime_web.vo.Request.SignUpRequestVO;
 import com.bu.anime_web.vo.Response.SignUpResponseVO;
-import com.bu.anime_web.vo.common.BaseVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,7 @@ public class UserService {
                 signUpUser.setUsername(signUpRequestVO.getUsername());
                 signUpUser.setEmail(signUpRequestVO.getEmail());
                 signUpUser.setOtp(generateOTP());
-                signUpUser.setExpiryTime(LocalDateTime.now());
+                signUpUser.setExpiryTime(LocalDateTime.now().plusMinutes(Long.parseLong(environment.getProperty("signUp.validity.minutes"))));
                 userRepository.save(signUpUser);
                 IMailBuilder mailBuilder = mailFactory.getMailBuilder(MailTypeEnum.SIGNUP);
                 Thread.startVirtualThread(() -> {
@@ -51,6 +50,7 @@ public class UserService {
                         log.error("During signup : "+e.getMessage());
                     }
                 });
+                signUpResponseVO.setOtpExpireMins(environment.getProperty("signUp.validity.minutes"));
             }
         } catch (Exception e) {
             throw new RuntimeException("", e);

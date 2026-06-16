@@ -16,4 +16,5 @@ public class User {
     private String email;
     private String otp;
     private LocalDateTime expiryTime;
+    private Boolean isVerified;
 }
