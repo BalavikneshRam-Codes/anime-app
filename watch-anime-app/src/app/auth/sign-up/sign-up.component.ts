@@ -137,7 +137,7 @@ export class SignUpComponent implements OnDestroy {
       username: this.step1Form.value.username
     };
 
-    this.http.post<any>('/signUp', body).subscribe({
+    this.http.post<any>('/resetOtp', body).subscribe({
       next: (response) => {
         this.isLoading.set(false);
         const expireMins = parseInt(response?.otpExpireMins || '1', 10);

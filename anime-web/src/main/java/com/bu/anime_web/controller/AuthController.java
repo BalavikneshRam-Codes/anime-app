@@ -2,6 +2,7 @@ package com.bu.anime_web.controller;
 
 import com.bu.anime_web.service.AuthService;
 import com.bu.anime_web.vo.Request.SetPasswordRequestVO;
+import com.bu.anime_web.vo.Request.SignUpRequestVO;
 import com.bu.anime_web.vo.Request.ValidateOtpRequestVO;
 import com.bu.anime_web.vo.Request.ValidateOtpResponseVO;
 import com.bu.anime_web.vo.Response.SignUpResponseVO;
@@ -25,5 +26,9 @@ public class AuthController {
     @PostMapping("/setPassword")
     public ResponseEntity<ValidateOtpResponseVO> setPassword(@RequestBody SetPasswordRequestVO setPasswordRequestVO) {
         return ResponseEntity.ok(authService.setPassword(setPasswordRequestVO));
+    }
+    @PostMapping("/resetOtp")
+    public ResponseEntity<SignUpResponseVO> resetOtp(@RequestBody SignUpRequestVO signUpRequestVO) {
+        return ResponseEntity.ok(authService.resetOtp(signUpRequestVO));
     }
 }

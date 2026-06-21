@@ -3,6 +3,7 @@ package com.bu.anime_web.service;
 import com.bu.anime_web.bean.SignUpRequestBean;
 import com.bu.anime_web.constant.MailTypeEnum;
 import com.bu.anime_web.entity.User;
+import com.bu.anime_web.helper.AuthHelper;
 import com.bu.anime_web.helper.MailHelper;
 import com.bu.anime_web.notification.mail.IMailBuilder;
 import com.bu.anime_web.notification.mail.factory.MailFactory;
@@ -29,6 +30,8 @@ public class UserService {
     private MailHelper  mailHelper;
     @Autowired
     private Environment environment;
+    @Autowired
+    private AuthHelper authHelper;
     public SignUpResponseVO signUp(SignUpRequestVO signUpRequestVO) {
         SignUpResponseVO signUpResponseVO = new SignUpResponseVO();
         try {
@@ -39,13 +42,14 @@ public class UserService {
                 User signUpUser = new User();
                 signUpUser.setUsername(signUpRequestVO.getUsername());
                 signUpUser.setEmail(signUpRequestVO.getEmail());
-                signUpUser.setOtp(generateOTP());
+                signUpUser.setOtp(authHelper.generateOTP());
                 signUpUser.setExpiryTime(LocalDateTime.now().plusMinutes(Long.parseLong(environment.getProperty("signUp.validity.minutes"))));
+                signUpUser.setIsVerified(false);
                 userRepository.save(signUpUser);
                 IMailBuilder mailBuilder = mailFactory.getMailBuilder(MailTypeEnum.SIGNUP);
                 Thread.startVirtualThread(() -> {
                     try {
-                        mailHelper.sendMail(mailBuilder.getMailSenderBean(setSignupBean(signUpRequestVO.getEmail(), signUpUser.getOtp(), signUpUser.getUsername())));
+                        mailHelper.sendMail(mailBuilder.getMailSenderBean(mailHelper.setSignupBean(signUpRequestVO.getEmail(), signUpUser.getOtp(), signUpUser.getUsername())));
                     } catch (Exception e) {
                         log.error("During signup : "+e.getMessage());
                     }
@@ -56,25 +60,5 @@ public class UserService {
             throw new RuntimeException("", e);
         }
         return signUpResponseVO;
-    }
-
-    private SignUpRequestBean setSignupBean(String email,String otp,String username) {
-        SignUpRequestBean signUpRequestBean = new SignUpRequestBean();
-        signUpRequestBean.setEmail(email);
-        signUpRequestBean.setOtp(otp);
-        signUpRequestBean.setUsername(username);
-        signUpRequestBean.setValidityMinutes(environment.getProperty("signUp.validity.minutes"));
-        return signUpRequestBean;
-    }
-
-    public String generateOTP() {
-        SecureRandom secureRandom = new SecureRandom();
-
-        // Generate a random number between 0 and 999999 (for a 6-digit OTP)
-        int randomNumber = secureRandom.nextInt((int) Math.pow(10, 6));
-
-        // Format the string to ensure it is exactly 6 digits.
-        // If the random number is '42', it will be padded with zeros to become '000042'
-        return String.format("%0" + 6 + "d", randomNumber);
     }
 }

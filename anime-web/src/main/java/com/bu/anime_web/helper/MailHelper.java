@@ -1,11 +1,13 @@
 package com.bu.anime_web.helper;
 
 import com.bu.anime_web.bean.MailSenderBean;
+import com.bu.anime_web.bean.SignUpRequestBean;
 import com.bu.anime_web.vo.common.AttachmentVO;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -16,6 +18,8 @@ public class MailHelper {
     private static final Logger log = LoggerFactory.getLogger(MailHelper.class);
     @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    private Environment env;
 
     public void sendMail(MailSenderBean mailSenderBean) {
         try {
@@ -34,5 +38,13 @@ public class MailHelper {
         } catch (Exception e) {
             log.error("Error sending email: {}", e.getMessage(), e);
         }
+    }
+    public SignUpRequestBean setSignupBean(String email, String otp, String username) {
+        SignUpRequestBean signUpRequestBean = new SignUpRequestBean();
+        signUpRequestBean.setEmail(email);
+        signUpRequestBean.setOtp(otp);
+        signUpRequestBean.setUsername(username);
+        signUpRequestBean.setValidityMinutes(env.getProperty("signUp.validity.minutes"));
+        return signUpRequestBean;
     }
 }
