@@ -7,11 +7,11 @@ import com.bu.anime_web.helper.MailHelper;
 import com.bu.anime_web.notification.mail.IMailBuilder;
 import com.bu.anime_web.notification.mail.factory.MailFactory;
 import com.bu.anime_web.repository.IUserRepository;
-import com.bu.anime_web.vo.Request.SetPasswordRequestVO;
-import com.bu.anime_web.vo.Request.SignUpRequestVO;
-import com.bu.anime_web.vo.Request.ValidateOtpRequestVO;
-import com.bu.anime_web.vo.Request.ValidateOtpResponseVO;
+import com.bu.anime_web.vo.Request.*;
+import com.bu.anime_web.vo.Response.AuthenticateResponseVO;
 import com.bu.anime_web.vo.Response.SignUpResponseVO;
+import com.bu.anime_web.vo.common.UserVO;
+import com.bu.anime_web.exception.UserNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -36,7 +36,7 @@ public class AuthService {
         try{
             if(validateOtpRequestVO.getEmail() != null && !validateOtpRequestVO.getEmail().isEmpty() && validateOtpRequestVO.getOtp() != null && !validateOtpRequestVO.getOtp().isEmpty()){
                 User user = userRepository.findByEmail(validateOtpRequestVO.getEmail())
-                        .orElseThrow(() -> new RuntimeException("User not found. Please check your email."));
+                        .orElseThrow(() -> new UserNotFoundException("User not found. Please check your email."));
 
                 if (user.getExpiryTime().isBefore(LocalDateTime.now()))
                     throw new RuntimeException("Your OTP has expired. Please request a new one.");
@@ -62,7 +62,7 @@ public class AuthService {
                 if(!setPasswordRequestVO.getNewPassword().equals(setPasswordRequestVO.getConfirmPassword()))
                     throw new RuntimeException("Passwords don't match. Please try again.");
                 User user = userRepository.findByEmailAndIsVerified(setPasswordRequestVO.getEmail(),true)
-                        .orElseThrow(() -> new RuntimeException("User not found. Please check your email."));
+                        .orElseThrow(() -> new UserNotFoundException("User not found. Please check your email."));
                 user.setPassword(setPasswordRequestVO.getNewPassword());
                 userRepository.save(user);
                 validateOtpResponseVO.setMessage("Account verified successfully. You can now log in.");
@@ -77,7 +77,7 @@ public class AuthService {
         SignUpResponseVO signUpResponseVO = new SignUpResponseVO();
         if(setPasswordRequestVO.getEmail() != null && !setPasswordRequestVO.getEmail().isEmpty()){
            User user = userRepository.findByEmailAndIsVerified(setPasswordRequestVO.getEmail(),false)
-                   .orElseThrow(() -> new RuntimeException("User not found. Please check your email."));
+                   .orElseThrow(() -> new UserNotFoundException("User not found. Please check your email."));
             user.setOtp(authHelper.generateOTP());
             user.setExpiryTime(LocalDateTime.now().plusMinutes(Long.parseLong(environment.getProperty("signUp.validity.minutes"))));
             userRepository.save(user);
@@ -92,5 +92,20 @@ public class AuthService {
             signUpResponseVO.setOtpExpireMins(environment.getProperty("signUp.validity.minutes"));
         }
         return signUpResponseVO;
+    }
+
+    public AuthenticateResponseVO authenticate(AuthenticateRequestVO authenticateRequestVO) {
+        AuthenticateResponseVO authenticateResponseVO = new AuthenticateResponseVO();
+        if(authenticateRequestVO.getEmail() != null && !authenticateRequestVO.getEmail().isEmpty()){
+           User user = userRepository.findByEmailAndIsVerified(authenticateRequestVO.getEmail(),true).orElseThrow(()  -> new UserNotFoundException("User not found. Please check your email."));
+            if(!user.getPassword().equals(authenticateRequestVO.getPassword()))
+                throw new RuntimeException("Passwords don't match. Please try again.");
+            UserVO userVO = new  UserVO();
+            userVO.setId(user.getId());
+            userVO.setEmail(user.getEmail());
+            userVO.setUsername(user.getUsername());
+            authenticateResponseVO.setUserVO(userVO);
+        }
+        return authenticateResponseVO;
     }
 }

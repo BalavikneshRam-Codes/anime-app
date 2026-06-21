@@ -8,6 +8,8 @@ public class LoadAnimeRequestVO {
     private String type;
     private String genres;
     private String season;
+    private String rating;
+    private String status;
     private String pageNum;
     private String pageSize;
 }

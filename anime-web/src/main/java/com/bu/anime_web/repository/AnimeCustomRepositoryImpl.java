@@ -27,6 +27,7 @@ public class AnimeCustomRepositoryImpl implements AnimeCustomRepository {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Anime> query = cb.createQuery(Anime.class);
         Root<Anime> anime = query.from(Anime.class);
+        query.distinct(true);
 
         List<Predicate> predicates = buildPredicates(request, cb, anime);
 
@@ -48,7 +49,7 @@ public class AnimeCustomRepositoryImpl implements AnimeCustomRepository {
         // Create count query for pagination total
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
         Root<Anime> countRoot = countQuery.from(Anime.class);
-        countQuery.select(cb.count(countRoot));
+        countQuery.select(cb.countDistinct(countRoot));
         
         List<Predicate> countPredicates = buildPredicates(request, cb, countRoot);
         if (!countPredicates.isEmpty()) {
@@ -77,13 +78,20 @@ public class AnimeCustomRepositoryImpl implements AnimeCustomRepository {
 
         if (request.getGenres() != null && !request.getGenres().trim().isEmpty()) {
             String genrePattern = "%" + request.getGenres().trim().toLowerCase() + "%";
-            predicates.add(cb.like(cb.lower(root.get("genres")), genrePattern));
+            jakarta.persistence.criteria.Join<Anime, com.bu.anime_web.entity.Genre> genresJoin = root.join("genresList");
+            predicates.add(cb.like(cb.lower(genresJoin.get("name")), genrePattern));
         }
 
         if (request.getSeason() != null && !request.getSeason().trim().isEmpty()) {
-            // Season might be exact match or contains, typically exact is better, but like is safer if formats vary.
-            // Using equals for exact season matching (e.g., "Fall 2024")
             predicates.add(cb.equal(cb.lower(root.get("season")), request.getSeason().trim().toLowerCase()));
+        }
+
+        if (request.getRating() != null && !request.getRating().trim().isEmpty()) {
+            predicates.add(cb.equal(cb.lower(root.get("rating")), request.getRating().trim().toLowerCase()));
+        }
+
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) {
+            predicates.add(cb.equal(cb.lower(root.get("status")), request.getStatus().trim().toLowerCase()));
         }
 
         return predicates;

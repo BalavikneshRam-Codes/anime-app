@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +17,16 @@ public interface AnimeRepository extends JpaRepository<Anime, Long> {
 
     @Query("SELECT a FROM Anime a JOIN a.episodesList e GROUP BY a ORDER BY MAX(CAST(e.updateAt AS timestamp)) DESC")
     Page<Anime> findAnimeByLatestEpisodeUpdate(Pageable pageable);
+
+    @Query("SELECT DISTINCT a.rating FROM Anime a WHERE a.rating IS NOT NULL")
+    List<String> findAllDistinctRatings();
+
+    @Query("SELECT DISTINCT a.types FROM Anime a WHERE a.types IS NOT NULL")
+    List<String> findAllDistinctTypes();
+
+    @Query("SELECT DISTINCT a.season FROM Anime a WHERE a.season IS NOT NULL")
+    List<String> findAllDistinctSeasons();
+
+    @Query("SELECT DISTINCT a.status FROM Anime a WHERE a.status IS NOT NULL")
+    List<String> findAllDistinctStatus();
 }

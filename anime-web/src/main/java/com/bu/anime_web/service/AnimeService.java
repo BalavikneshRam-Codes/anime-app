@@ -9,12 +9,8 @@ import com.bu.anime_web.vo.Request.LoadAnimeRequestVO;
 import com.bu.anime_web.vo.Request.RecentAnimeRequestVO;
 import com.bu.anime_web.vo.Response.LoadAnimeResponseVO;
 import com.bu.anime_web.vo.Response.RecentAnimeResponseVO;
-import com.bu.anime_web.vo.common.AnimeVO;
-import com.bu.anime_web.vo.common.EpisodeVO;
-import com.bu.anime_web.vo.common.GenreVO;
-import com.bu.anime_web.vo.common.ProducerVO;
-import com.bu.anime_web.vo.common.StudioVO;
-import com.bu.anime_web.vo.common.TermsByType;
+import com.bu.anime_web.vo.Response.AnimeFilterResponseVO;
+import com.bu.anime_web.vo.common.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +30,8 @@ public class AnimeService {
     private AnimeCustomRepository animeCustomRepository;
     @Autowired
     private AnimeRepository animeRepository;
+    @Autowired
+    private com.bu.anime_web.repository.GenreRepository genreRepository;
     @Autowired
     private AnimeConverter animeConverter;
 
@@ -61,8 +59,17 @@ public class AnimeService {
                 .map(animeConverter::mapToAnimeVO)
                 .collect(Collectors.toList());
 
+        com.bu.anime_web.vo.common.PageableVO pageableVO = new com.bu.anime_web.vo.common.PageableVO();
+        pageableVO.setPageNumber(animePage.getNumber() + 1);
+        pageableVO.setPageSize(animePage.getSize());
+        pageableVO.setTotalElements(animePage.getTotalElements());
+        pageableVO.setTotalPages(animePage.getTotalPages());
+        pageableVO.setFirst(animePage.isFirst());
+        pageableVO.setLast(animePage.isLast());
+
         RecentAnimeResponseVO response = new RecentAnimeResponseVO();
         response.setAnimeList(animeVOList);
+        response.setPageableVO(pageableVO);
         return response;
     }
 
@@ -93,6 +100,16 @@ public class AnimeService {
 
         LoadAnimeResponseVO response = new LoadAnimeResponseVO();
         response.setAnimeList(animeVOList);
+
+        com.bu.anime_web.vo.common.PageableVO pageableVO = new com.bu.anime_web.vo.common.PageableVO();
+        pageableVO.setPageNumber(animePage.getNumber() + 1);
+        pageableVO.setPageSize(animePage.getSize());
+        pageableVO.setTotalElements(animePage.getTotalElements());
+        pageableVO.setTotalPages(animePage.getTotalPages());
+        pageableVO.setFirst(animePage.isFirst());
+        pageableVO.setLast(animePage.isLast());
+        response.setPageableVO(pageableVO);
+
         return response;
     }
 
@@ -127,5 +144,45 @@ public class AnimeService {
         }
 
         return vo;
+    }
+
+    public AnimeFilterResponseVO fetchAnimeFilter(BaseVO baseVO) {
+        AnimeFilterResponseVO response = new AnimeFilterResponseVO();
+        
+        // Fetch distinct ratings
+        response.setRatings(animeRepository.findAllDistinctRatings().stream()
+                .filter(r -> r != null && !r.trim().isEmpty())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList()));
+        
+        // Fetch distinct types
+        List<String> rawTypes = animeRepository.findAllDistinctTypes();
+        // Since types might be comma separated in db or single string, we just get distinct directly or split
+        // For simplicity we will assume they are simple strings or handle splitting if necessary.
+        // Actually types seems to be a list in string form or single string. We'll return it raw or split later if needed.
+        response.setTypes(rawTypes.stream()
+                .filter(t -> t != null && !t.trim().isEmpty())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList()));
+
+        
+        // Fetch distinct statuses
+        response.setStatuses(animeRepository.findAllDistinctStatus().stream()
+                .filter(s -> s != null && !s.trim().isEmpty())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList()));
+        
+        // Fetch genres
+        List<String> genres = genreRepository.findAll().stream()
+                .map(com.bu.anime_web.entity.Genre::getName)
+                .filter(g -> g != null && !g.trim().isEmpty())
+                .sorted()
+                .collect(Collectors.toList());
+        response.setGenres(genres);
+
+        return response;
     }
 }

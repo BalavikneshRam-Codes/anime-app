@@ -7,6 +7,7 @@ import com.bu.anime_web.vo.Request.RecentAnimeRequestVO;
 import com.bu.anime_web.vo.Response.LoadAnimeResponseVO;
 import com.bu.anime_web.vo.Response.RecentAnimeResponseVO;
 import com.bu.anime_web.vo.common.AnimeVO;
+import com.bu.anime_web.vo.common.BaseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,5 +28,9 @@ public class AnimeController {
     @PostMapping("/fetchAnime")
     public ResponseEntity<AnimeVO> fetchAnime(@RequestBody AnimeRequestVO animeRequestVO) {
         return ResponseEntity.ok(animeService.fetchAnime(animeRequestVO));
+    }
+    @PostMapping("/fetchAnimeFilter")
+    public ResponseEntity<com.bu.anime_web.vo.Response.AnimeFilterResponseVO> fetchAnimeFilter(@RequestBody BaseVO baseVO) {
+        return ResponseEntity.ok(animeService.fetchAnimeFilter(baseVO));
     }
 }

@@ -55,4 +55,8 @@ export class SearchResultsComponent implements OnInit {
       }
     });
   }
+
+  encodeId(id: number): string {
+    return btoa(id.toString());
+  }
 }

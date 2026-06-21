@@ -77,7 +77,7 @@ export class SearchComponent {
   goToAnime(id: number) {
     this.showDropdown.set(false);
     this.query.set('');
-    this.router.navigate(['/anime', id]);
+    this.router.navigate(['/anime', btoa(id.toString())]);
   }
 
   viewAllResults() {

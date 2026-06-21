@@ -71,7 +71,16 @@ export class AnimeDetailComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
-        this.fetchAnime(Number(id));
+        try {
+          const decodedId = Number(atob(id));
+          this.fetchAnime(decodedId);
+        } catch (e) {
+          // Fallback if the id was not encoded
+          const fallbackId = Number(id);
+          if (!isNaN(fallbackId)) {
+            this.fetchAnime(fallbackId);
+          }
+        }
       }
     });
   }
@@ -82,11 +91,9 @@ export class AnimeDetailComponent implements OnInit {
       next: (res) => {
         this.anime.set(res);
         if (res.episodes_list && res.episodes_list.length > 0) {
-          const latestEp = res.episodes_list[res.episodes_list.length - 1];
-          this.currentEpisode.set(latestEp);
-
-          const chunkIndex = Math.floor((res.episodes_list.length - 1) / 100);
-          this.selectedChunkIndex.set(chunkIndex);
+          const firstEp = res.episodes_list[0];
+          this.currentEpisode.set(firstEp);
+          this.selectedChunkIndex.set(0);
         }
         this.loading.set(false);
       },

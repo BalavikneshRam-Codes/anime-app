@@ -59,7 +59,7 @@
   } @else {
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto pb-12">
       @for (anime of animeList(); track anime.id) {
-        <div [routerLink]="['/anime', anime.id]" class="group relative rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 ease-in-out hover:-translate-y-2 cursor-pointer flex flex-col h-full">
+        <div [routerLink]="['/anime', encodeId(anime.id)]" class="group relative rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 ease-in-out hover:-translate-y-2 cursor-pointer flex flex-col h-full">
           
           <!-- Image Container -->
           <div class="relative w-full aspect-[3/4] overflow-hidden">

@@ -8,4 +8,5 @@ import java.util.List;
 @Data
 public class LoadAnimeResponseVO {
     private List<AnimeVO> animeList;
+    private com.bu.anime_web.vo.common.PageableVO pageableVO;
 }
