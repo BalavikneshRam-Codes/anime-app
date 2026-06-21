@@ -27,6 +27,7 @@ public class MailHelper {
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
                 helper.setTo(mailSenderBean.getToEmail());
+                helper.setFrom(env.getProperty("spring.mail.from"));
                 helper.setSubject(mailSenderBean.getSubject());
                 helper.setText(mailSenderBean.getBody(), true);
                 if (mailSenderBean.getAttachments() != null && !mailSenderBean.getAttachments().isEmpty())
