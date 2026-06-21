@@ -14,7 +14,7 @@ import com.bu.anime_web.vo.common.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -36,36 +36,17 @@ public class AnimeService {
     private AnimeConverter animeConverter;
 
     public RecentAnimeResponseVO fetchRecentAnimeList(RecentAnimeRequestVO recentAnimeRequestVO) {
-        int pageNum = 1;
-        int pageSize = 20;
-
-        if (recentAnimeRequestVO != null) {
-            try {
-                if (recentAnimeRequestVO.getPageNum() != null && !recentAnimeRequestVO.getPageNum().isEmpty()) {
-                    pageNum = Integer.parseInt(recentAnimeRequestVO.getPageNum());
-                }
-                if (recentAnimeRequestVO.getPageSize() != null && !recentAnimeRequestVO.getPageSize().isEmpty()) {
-                    pageSize = Integer.parseInt(recentAnimeRequestVO.getPageSize());
-                }
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid pageNum or pageSize format. They must be integers.");
-            }
-        }
-
-        Pageable pageable = PageRequest.of(Math.max(0, pageNum - 1), pageSize);
+        String pageNumStr = recentAnimeRequestVO != null ? recentAnimeRequestVO.getPageNum() : null;
+        String pageSizeStr = recentAnimeRequestVO != null ? recentAnimeRequestVO.getPageSize() : null;
+        
+        Pageable pageable = com.bu.anime_web.helper.PaginationUtil.getPageable(pageNumStr, pageSizeStr);
         Page<Anime> animePage = animeRepository.findAnimeByLatestEpisodeUpdate(pageable);
 
         List<AnimeVO> animeVOList = animePage.getContent().stream()
                 .map(animeConverter::mapToAnimeVO)
                 .collect(Collectors.toList());
 
-        com.bu.anime_web.vo.common.PageableVO pageableVO = new com.bu.anime_web.vo.common.PageableVO();
-        pageableVO.setPageNumber(animePage.getNumber() + 1);
-        pageableVO.setPageSize(animePage.getSize());
-        pageableVO.setTotalElements(animePage.getTotalElements());
-        pageableVO.setTotalPages(animePage.getTotalPages());
-        pageableVO.setFirst(animePage.isFirst());
-        pageableVO.setLast(animePage.isLast());
+        com.bu.anime_web.vo.common.PageableVO pageableVO = com.bu.anime_web.helper.PaginationUtil.mapToPageableVO(animePage);
 
         RecentAnimeResponseVO response = new RecentAnimeResponseVO();
         response.setAnimeList(animeVOList);
@@ -74,23 +55,10 @@ public class AnimeService {
     }
 
     public LoadAnimeResponseVO loadAnime(LoadAnimeRequestVO loadAnimeRequestVO) {
-        int pageNum = 1;
-        int pageSize = 20;
+        String pageNumStr = loadAnimeRequestVO != null ? loadAnimeRequestVO.getPageNum() : null;
+        String pageSizeStr = loadAnimeRequestVO != null ? loadAnimeRequestVO.getPageSize() : null;
 
-        if (loadAnimeRequestVO != null) {
-            try {
-                if (loadAnimeRequestVO.getPageNum() != null && !loadAnimeRequestVO.getPageNum().isEmpty()) {
-                    pageNum = Integer.parseInt(loadAnimeRequestVO.getPageNum());
-                }
-                if (loadAnimeRequestVO.getPageSize() != null && !loadAnimeRequestVO.getPageSize().isEmpty()) {
-                    pageSize = Integer.parseInt(loadAnimeRequestVO.getPageSize());
-                }
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid pageNum or pageSize format. They must be integers.");
-            }
-        }
-
-        Pageable pageable = PageRequest.of(Math.max(0, pageNum - 1), pageSize);
+        Pageable pageable = com.bu.anime_web.helper.PaginationUtil.getPageable(pageNumStr, pageSizeStr);
         
         Page<Anime> animePage = animeCustomRepository.findAnimesWithDynamicFilters(loadAnimeRequestVO, pageable);
 
@@ -101,13 +69,7 @@ public class AnimeService {
         LoadAnimeResponseVO response = new LoadAnimeResponseVO();
         response.setAnimeList(animeVOList);
 
-        com.bu.anime_web.vo.common.PageableVO pageableVO = new com.bu.anime_web.vo.common.PageableVO();
-        pageableVO.setPageNumber(animePage.getNumber() + 1);
-        pageableVO.setPageSize(animePage.getSize());
-        pageableVO.setTotalElements(animePage.getTotalElements());
-        pageableVO.setTotalPages(animePage.getTotalPages());
-        pageableVO.setFirst(animePage.isFirst());
-        pageableVO.setLast(animePage.isLast());
+        com.bu.anime_web.vo.common.PageableVO pageableVO = com.bu.anime_web.helper.PaginationUtil.mapToPageableVO(animePage);
         response.setPageableVO(pageableVO);
 
         return response;

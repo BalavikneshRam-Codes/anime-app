@@ -2,6 +2,8 @@ package com.bu.anime_web.helper;
 
 import com.bu.anime_web.bean.MailSenderBean;
 import com.bu.anime_web.bean.SignUpRequestBean;
+import com.bu.anime_web.constant.MailTypeEnum;
+import com.bu.anime_web.notification.mail.factory.MailFactory;
 import com.bu.anime_web.vo.common.AttachmentVO;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -20,6 +22,8 @@ public class MailHelper {
     private JavaMailSender mailSender;
     @Autowired
     private Environment env;
+    @Autowired
+    private MailFactory mailFactory;
 
     public void sendMail(MailSenderBean mailSenderBean) {
         try {
@@ -47,5 +51,16 @@ public class MailHelper {
         signUpRequestBean.setUsername(username);
         signUpRequestBean.setValidityMinutes(env.getProperty("signUp.validity.minutes"));
         return signUpRequestBean;
+    }
+
+    public void sendAsyncSignupMail(String email, String otp, String username, MailTypeEnum mailTypeEnum) {
+        com.bu.anime_web.notification.mail.IMailBuilder mailBuilder = mailFactory.getMailBuilder(mailTypeEnum);
+        Thread.startVirtualThread(() -> {
+            try {
+                sendMail(mailBuilder.getMailSenderBean(setSignupBean(email, otp, username)));
+            } catch (Exception e) {
+                log.error("Error during async signup email: " + e.getMessage(), e);
+            }
+        });
     }
 }

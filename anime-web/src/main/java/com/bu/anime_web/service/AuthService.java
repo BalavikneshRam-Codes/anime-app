@@ -1,10 +1,10 @@
 package com.bu.anime_web.service;
 
-import com.bu.anime_web.constant.MailTypeEnum;
+
 import com.bu.anime_web.entity.User;
 import com.bu.anime_web.helper.AuthHelper;
 import com.bu.anime_web.helper.MailHelper;
-import com.bu.anime_web.notification.mail.IMailBuilder;
+
 import com.bu.anime_web.notification.mail.factory.MailFactory;
 import com.bu.anime_web.repository.IUserRepository;
 import com.bu.anime_web.vo.Request.*;
@@ -79,16 +79,11 @@ public class AuthService {
            User user = userRepository.findByEmailAndIsVerified(setPasswordRequestVO.getEmail(),false)
                    .orElseThrow(() -> new UserNotFoundException("User not found. Please check your email."));
             user.setOtp(authHelper.generateOTP());
-            user.setExpiryTime(LocalDateTime.now().plusMinutes(Long.parseLong(environment.getProperty("signUp.validity.minutes"))));
+            user.setExpiryTime(authHelper.getExpiryTime());
             userRepository.save(user);
-            IMailBuilder mailBuilder = mailFactory.getMailBuilder(MailTypeEnum.SIGNUP);
-            Thread.startVirtualThread(() -> {
-                try {
-                    mailHelper.sendMail(mailBuilder.getMailSenderBean(mailHelper.setSignupBean(user.getEmail(), user.getOtp(), user.getUsername())));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
+            
+            mailHelper.sendAsyncSignupMail(user.getEmail(), user.getOtp(), user.getUsername(), mailFactory);
+            
             signUpResponseVO.setOtpExpireMins(environment.getProperty("signUp.validity.minutes"));
         }
         return signUpResponseVO;

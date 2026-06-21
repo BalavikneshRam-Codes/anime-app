@@ -5,10 +5,7 @@ import com.bu.anime_web.vo.Request.LoadAnimeRequestVO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -78,7 +75,7 @@ public class AnimeCustomRepositoryImpl implements AnimeCustomRepository {
 
         if (request.getGenres() != null && !request.getGenres().trim().isEmpty()) {
             String genrePattern = "%" + request.getGenres().trim().toLowerCase() + "%";
-            jakarta.persistence.criteria.Join<Anime, com.bu.anime_web.entity.Genre> genresJoin = root.join("genresList");
+            jakarta.persistence.criteria.Join<Anime, com.bu.anime_web.entity.Genre> genresJoin = root.join("genresList", JoinType.LEFT);
             predicates.add(cb.like(cb.lower(genresJoin.get("name")), genrePattern));
         }
 
