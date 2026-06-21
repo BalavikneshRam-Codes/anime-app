@@ -1,6 +1,7 @@
 package com.bu.anime_web.service;
 
 
+import com.bu.anime_web.constant.MailTypeEnum;
 import com.bu.anime_web.entity.User;
 import com.bu.anime_web.helper.AuthHelper;
 import com.bu.anime_web.helper.MailHelper;
@@ -82,7 +83,7 @@ public class AuthService {
             user.setExpiryTime(authHelper.getExpiryTime());
             userRepository.save(user);
             
-            mailHelper.sendAsyncSignupMail(user.getEmail(), user.getOtp(), user.getUsername(), mailFactory);
+            mailHelper.sendAsyncSignupMail(user.getEmail(), user.getOtp(), user.getUsername(), MailTypeEnum.SIGNUP);
             
             signUpResponseVO.setOtpExpireMins(environment.getProperty("signUp.validity.minutes"));
         }
