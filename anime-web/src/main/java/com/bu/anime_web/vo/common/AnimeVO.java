@@ -64,4 +64,8 @@ public class AnimeVO {
 
     @JsonProperty("studio_list")
     private java.util.List<StudioVO> studioList;
+    private String latestUserEpisodeId;
+    
+    @JsonProperty("watched_episode_ids")
+    private java.util.List<String> watchedEpisodeIds;
 }

@@ -158,12 +158,12 @@
       class="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4 pt-12 bg-[#1a1a1f] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       <div class="grid grid-cols-5 gap-1.5">
         @for (ep of displayedEpisodes(); track ep.id) {
-        <button (click)="selectEpisode(ep)" [class.bg-purple-600]="currentEpisode()?.id === ep.id"
-          [class.text-white]="currentEpisode()?.id === ep.id"
-          [class.shadow-[0_0_15px_rgba(147,51,234,0.4)]]="currentEpisode()?.id === ep.id"
-          [class.bg-[#2a2a32]]="currentEpisode()?.id !== ep.id" [class.text-gray-400]="currentEpisode()?.id !== ep.id"
-          [class.hover:bg-white/10]="currentEpisode()?.id !== ep.id"
-          [class.hover:text-white]="currentEpisode()?.id !== ep.id"
+        <button (click)="selectEpisode(ep)" 
+          [ngClass]="{
+            'bg-purple-600 text-white shadow-[0_0_15px_rgba(147,51,234,0.4)]': currentEpisode()?.id === ep.id,
+            'bg-purple-900/30 text-purple-300/60 hover:bg-purple-800/40 hover:text-purple-200 border border-purple-500/20': currentEpisode()?.id !== ep.id && isWatched(ep),
+            'bg-[#2a2a32] text-gray-400 hover:bg-white/10 hover:text-white': currentEpisode()?.id !== ep.id && !isWatched(ep)
+          }"
           class="h-9 rounded-md font-bold text-[11px] flex items-center justify-center transition-all relative group
                  [&:nth-child(5n+1)_.tooltip-box]:left-0 [&:nth-child(5n+1)_.tooltip-box]:translate-x-0
                  [&:nth-child(5n+2)_.tooltip-box]:left-0 [&:nth-child(5n+2)_.tooltip-box]:translate-x-0

@@ -2,8 +2,11 @@ package com.bu.anime_web.service;
 
 import com.bu.anime_web.converter.AnimeConverter;
 import com.bu.anime_web.entity.Anime;
+import com.bu.anime_web.entity.UserEpisodeProgress;
+import com.bu.anime_web.helper.UserHelper;
 import com.bu.anime_web.repository.AnimeCustomRepository;
 import com.bu.anime_web.repository.AnimeRepository;
+import com.bu.anime_web.repository.UserEpisodeProgressRepository;
 import com.bu.anime_web.vo.Request.AnimeRequestVO;
 import com.bu.anime_web.vo.Request.LoadAnimeRequestVO;
 import com.bu.anime_web.vo.Request.RecentAnimeRequestVO;
@@ -34,6 +37,10 @@ public class AnimeService {
     private com.bu.anime_web.repository.GenreRepository genreRepository;
     @Autowired
     private AnimeConverter animeConverter;
+    @Autowired
+    private UserEpisodeProgressRepository userEpisodeProgressRepository;
+    @Autowired
+    private UserHelper userHelper;
 
     public RecentAnimeResponseVO fetchRecentAnimeList(RecentAnimeRequestVO recentAnimeRequestVO) {
         String pageNumStr = recentAnimeRequestVO != null ? recentAnimeRequestVO.getPageNum() : null;
@@ -84,6 +91,18 @@ public class AnimeService {
                 .orElseThrow(() -> new IllegalArgumentException("Anime not found with ID: " + animeRequestVO.getAnimeId()));
 
         AnimeVO vo = animeConverter.mapToAnimeVO(anime);
+        if(animeRequestVO.getUserId() != null) {
+            com.bu.anime_web.entity.User user = userHelper.getUser(animeRequestVO.getUserId());
+            userEpisodeProgressRepository.findFirstByEpisodeAnimeAndUserOrderByEpisodeOrderDesc(anime, user).ifPresent(userEpisodeProgress -> {
+                vo.setLatestUserEpisodeId(userEpisodeProgress.getEpisode().getEpisodeEmbedId());
+            });
+            
+            List<String> watchedIds = userEpisodeProgressRepository.findByEpisodeAnimeAndUser(anime, user)
+                    .stream()
+                    .map(p -> p.getEpisode().getEpisodeEmbedId())
+                    .collect(Collectors.toList());
+            vo.setWatchedEpisodeIds(watchedIds);
+        }
 
         if (anime.getEpisodesList() != null && !anime.getEpisodesList().isEmpty()) {
             List<com.bu.anime_web.vo.common.EpisodeVO> episodeVOList = anime.getEpisodesList().stream().map(ep -> {
