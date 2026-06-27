@@ -111,5 +111,49 @@
         </div>
       }
     </div>
+
+    <!-- Pagination Controls -->
+    @if (pageableVO() && pageableVO().totalPages > 1) {
+      <div class="flex items-center justify-center gap-2 mt-8 mb-16 max-w-7xl mx-auto">
+        <!-- Previous Button -->
+        <button (click)="changePage(pageNum() - 1)" [disabled]="pageNum() === 1 || loading()"
+          class="flex items-center justify-center px-4 py-2 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 font-bold hover:bg-gray-800 hover:text-white hover:border-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,0,0,0.2)]">
+          <svg class="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Prev
+        </button>
+
+        <!-- Page Numbers -->
+        <div class="hidden sm:flex items-center gap-2">
+          @for (page of pageNumbers; track $index) {
+            @if (page === -1) {
+            <span class="px-3 py-2 text-gray-500 font-bold">...</span>
+            } @else {
+            <button (click)="changePage(page)" [disabled]="loading()" [class]="page === pageNum() 
+                    ? 'bg-purple-600 text-white border-purple-500 shadow-[0_0_15px_rgba(147,51,234,0.4)]' 
+                    : 'bg-gray-900 text-gray-400 border-gray-800 hover:bg-gray-800 hover:text-white hover:border-gray-700'"
+              class="w-10 h-10 flex items-center justify-center rounded-xl border font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ page }}
+            </button>
+            }
+          }
+        </div>
+
+        <!-- Mobile current page indicator -->
+        <div class="sm:hidden flex items-center justify-center px-4 py-2 rounded-xl bg-gray-900 border border-gray-800 font-bold text-gray-300">
+          {{ pageNum() }} / {{ pageableVO().totalPages }}
+        </div>
+
+        <!-- Next Button -->
+        <button (click)="changePage(pageNum() + 1)" [disabled]="pageNum() === pageableVO().totalPages || loading()"
+          class="flex items-center justify-center px-4 py-2 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 font-bold hover:bg-gray-800 hover:text-white hover:border-gray-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(0,0,0,0.2)]">
+          Next
+          <svg class="w-5 h-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    }
   }
 </div>
