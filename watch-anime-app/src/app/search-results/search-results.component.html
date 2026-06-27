@@ -16,7 +16,7 @@
       </h1>
       <p class="text-gray-400 text-lg font-medium">
         @if (!loading()) {
-          Found {{ animeList().length }} shows matching your query.
+          Found {{ pageableVO() ? pageableVO().totalElements : animeList().length }} shows matching your query.
         } @else {
           Searching the database...
         }
