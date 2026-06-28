@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class LoadAnimeRequestVO {
+    private Long userId;
     private String title;
     private String type;
     private String genres;

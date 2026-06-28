@@ -66,6 +66,12 @@ public class AnimeVO {
     private java.util.List<StudioVO> studioList;
     private String latestUserEpisodeId;
     
+    @JsonProperty("is_favorite")
+    private Boolean isFavorite;
+    
+    @JsonProperty("watch_status")
+    private String watchStatus;
+    
     @JsonProperty("watched_episode_ids")
     private java.util.List<String> watchedEpisodeIds;
 }

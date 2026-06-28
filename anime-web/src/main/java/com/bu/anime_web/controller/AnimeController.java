@@ -4,6 +4,8 @@ import com.bu.anime_web.service.AnimeService;
 import com.bu.anime_web.vo.Request.AnimeRequestVO;
 import com.bu.anime_web.vo.Request.LoadAnimeRequestVO;
 import com.bu.anime_web.vo.Request.RecentAnimeRequestVO;
+import com.bu.anime_web.vo.Request.UserAnimeStatusRequestVO;
+import com.bu.anime_web.vo.Response.UpdateAnimeStatusResponseVO;
 import com.bu.anime_web.vo.Response.LoadAnimeResponseVO;
 import com.bu.anime_web.vo.Response.RecentAnimeResponseVO;
 import com.bu.anime_web.vo.common.AnimeVO;
@@ -32,5 +34,13 @@ public class AnimeController {
     @PostMapping("/fetchAnimeFilter")
     public ResponseEntity<com.bu.anime_web.vo.Response.AnimeFilterResponseVO> fetchAnimeFilter(@RequestBody BaseVO baseVO) {
         return ResponseEntity.ok(animeService.fetchAnimeFilter(baseVO));
+    }
+    @PostMapping("/updateUserAnimeStatus")
+    public ResponseEntity<UpdateAnimeStatusResponseVO> updateUserAnimeStatus(@RequestBody UserAnimeStatusRequestVO requestVO) {
+        UpdateAnimeStatusResponseVO response = animeService.updateUserAnimeStatus(requestVO);
+        if ("error".equals(response.getStatus())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 }

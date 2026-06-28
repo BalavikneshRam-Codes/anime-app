@@ -7,6 +7,7 @@ export class AuthService {
   isLoggedIn = signal<boolean>(false);
   currentUser = signal<any>(null);
   isSignOutModalOpen = signal<boolean>(false);
+  isLoginPromptModalOpen = signal<boolean>(false);
 
   constructor() {
     const storedUser = localStorage.getItem('currentUser');
@@ -35,5 +36,13 @@ export class AuthService {
 
   closeSignOutModal() {
     this.isSignOutModalOpen.set(false);
+  }
+
+  openLoginPromptModal() {
+    this.isLoginPromptModalOpen.set(true);
+  }
+
+  closeLoginPromptModal() {
+    this.isLoginPromptModalOpen.set(false);
   }
 }

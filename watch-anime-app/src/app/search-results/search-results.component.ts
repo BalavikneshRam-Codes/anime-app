@@ -2,11 +2,13 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
+import { LoginPromptModalComponent } from '../auth/login-prompt-modal/login-prompt-modal.component';
 
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, LoginPromptModalComponent],
   templateUrl: './search-results.component.html'
 })
 export class SearchResultsComponent implements OnInit {
@@ -19,6 +21,7 @@ export class SearchResultsComponent implements OnInit {
   private http = inject(HttpClient);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private authService = inject(AuthService);
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -39,11 +42,18 @@ export class SearchResultsComponent implements OnInit {
 
   performSearch(searchQuery: string, page: number) {
     this.loading.set(true);
-    const payload = {
+    const payload: any = {
       title: searchQuery,
       pageNum: page,
       pageSize: 20
     };
+
+    if (this.authService.isLoggedIn()) {
+      const user = this.authService.currentUser();
+      if (user) {
+        payload.userId = user.userVO ? user.userVO.id : user.id;
+      }
+    }
 
     this.http.post<any>('/loadAnime', payload).subscribe({
       next: (response) => {
@@ -106,5 +116,46 @@ export class SearchResultsComponent implements OnInit {
 
   encodeId(id: number): string {
     return btoa(id.toString());
+  }
+
+  toggleStatus(event: Event, anime: any, type: 'favorite' | 'bookmark') {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!this.authService.isLoggedIn()) {
+      this.authService.openLoginPromptModal();
+      return;
+    }
+
+    const user = this.authService.currentUser();
+    const userId = user.userVO ? user.userVO.id : user.id;
+
+    const payload: any = {
+      userId: userId,
+      animeId: anime.id
+    };
+
+    if (type === 'favorite') {
+      anime.is_favorite = !anime.is_favorite;
+      payload.isFavorite = anime.is_favorite;
+    } else if (type === 'bookmark') {
+      anime.watch_status = anime.watch_status === 'WATCH_LATER' ? 'NONE' : 'WATCH_LATER';
+      payload.watchStatus = anime.watch_status;
+    }
+
+    this.http.post<any>('/updateUserAnimeStatus', payload).subscribe({
+      next: (res) => {
+        if (res.status === 'error') {
+          // Revert on error
+          if (type === 'favorite') anime.is_favorite = !anime.is_favorite;
+          if (type === 'bookmark') anime.watch_status = anime.watch_status === 'NONE' ? 'WATCH_LATER' : 'NONE';
+        }
+      },
+      error: () => {
+        // Revert on error
+        if (type === 'favorite') anime.is_favorite = !anime.is_favorite;
+        if (type === 'bookmark') anime.watch_status = anime.watch_status === 'NONE' ? 'WATCH_LATER' : 'NONE';
+      }
+    });
   }
 }

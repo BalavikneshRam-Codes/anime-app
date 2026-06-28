@@ -6,11 +6,12 @@ import { RouterModule } from '@angular/router';
 import { SearchComponent } from '../search/search.component';
 import { AuthService } from '../auth/auth.service';
 import { SignOutModalComponent } from '../auth/sign-out-modal/sign-out-modal.component';
+import { LoginPromptModalComponent } from '../auth/login-prompt-modal/login-prompt-modal.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, SearchComponent, SignOutModalComponent],
+  imports: [CommonModule, RouterModule, SearchComponent, SignOutModalComponent, LoginPromptModalComponent],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -69,6 +70,13 @@ export class DashboardComponent implements OnInit {
       if (currentFilters.season) payload.season = currentFilters.season;
       if (currentFilters.type) payload.type = currentFilters.type;
       if (currentFilters.status) payload.status = currentFilters.status;
+    }
+
+    if (this.authService.isLoggedIn()) {
+      const user = this.authService.currentUser();
+      if (user) {
+        payload.userId = user.userVO ? user.userVO.id : user.id;
+      }
     }
 
     this.http.post<any>(endpoint, payload).subscribe({
@@ -142,5 +150,44 @@ export class DashboardComponent implements OnInit {
 
   encodeId(id: number): string {
     return btoa(id.toString());
+  }
+
+  toggleStatus(event: Event, anime: any, type: 'favorite' | 'bookmark') {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!this.authService.isLoggedIn()) {
+      this.authService.openLoginPromptModal();
+      return;
+    }
+
+    const user = this.authService.currentUser();
+    const userId = user.userVO ? user.userVO.id : user.id;
+
+    const payload: any = {
+      userId: userId,
+      animeId: anime.id
+    };
+
+    if (type === 'favorite') {
+      anime.is_favorite = !anime.is_favorite;
+      payload.isFavorite = anime.is_favorite;
+    } else if (type === 'bookmark') {
+      anime.watch_status = anime.watch_status === 'WATCH_LATER' ? 'NONE' : 'WATCH_LATER';
+      payload.watchStatus = anime.watch_status;
+    }
+
+    this.http.post<any>('/updateUserAnimeStatus', payload).subscribe({
+      next: (res) => {
+        if (res.status === 'error') {
+          if (type === 'favorite') anime.is_favorite = !anime.is_favorite;
+          if (type === 'bookmark') anime.watch_status = anime.watch_status === 'NONE' ? 'WATCH_LATER' : 'NONE';
+        }
+      },
+      error: () => {
+        if (type === 'favorite') anime.is_favorite = !anime.is_favorite;
+        if (type === 'bookmark') anime.watch_status = anime.watch_status === 'NONE' ? 'WATCH_LATER' : 'NONE';
+      }
+    });
   }
 }

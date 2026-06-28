@@ -13,6 +13,11 @@ import com.bu.anime_web.vo.Request.RecentAnimeRequestVO;
 import com.bu.anime_web.vo.Response.LoadAnimeResponseVO;
 import com.bu.anime_web.vo.Response.RecentAnimeResponseVO;
 import com.bu.anime_web.vo.Response.AnimeFilterResponseVO;
+import com.bu.anime_web.vo.Response.UpdateAnimeStatusResponseVO;
+import com.bu.anime_web.vo.Request.UserAnimeStatusRequestVO;
+import com.bu.anime_web.entity.UserAnimeStatus;
+import com.bu.anime_web.entity.WatchStatus;
+import com.bu.anime_web.repository.UserAnimeStatusRepository;
 import com.bu.anime_web.vo.common.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +46,8 @@ public class AnimeService {
     private UserEpisodeProgressRepository userEpisodeProgressRepository;
     @Autowired
     private UserHelper userHelper;
+    @Autowired
+    private UserAnimeStatusRepository userAnimeStatusRepository;
 
     public RecentAnimeResponseVO fetchRecentAnimeList(RecentAnimeRequestVO recentAnimeRequestVO) {
         String pageNumStr = recentAnimeRequestVO != null ? recentAnimeRequestVO.getPageNum() : null;
@@ -52,6 +59,10 @@ public class AnimeService {
         List<AnimeVO> animeVOList = animePage.getContent().stream()
                 .map(animeConverter::mapToAnimeVO)
                 .collect(Collectors.toList());
+                
+        if (recentAnimeRequestVO != null && recentAnimeRequestVO.getUserId() != null) {
+            populateUserAnimeStatus(animeVOList, recentAnimeRequestVO.getUserId());
+        }
 
         com.bu.anime_web.vo.common.PageableVO pageableVO = com.bu.anime_web.helper.PaginationUtil.mapToPageableVO(animePage);
 
@@ -72,6 +83,10 @@ public class AnimeService {
         List<AnimeVO> animeVOList = animePage.getContent().stream()
                 .map(animeConverter::mapToAnimeVO)
                 .collect(Collectors.toList());
+                
+        if (loadAnimeRequestVO != null && loadAnimeRequestVO.getUserId() != null) {
+            populateUserAnimeStatus(animeVOList, loadAnimeRequestVO.getUserId());
+        }
 
         LoadAnimeResponseVO response = new LoadAnimeResponseVO();
         response.setAnimeList(animeVOList);
@@ -164,6 +179,65 @@ public class AnimeService {
                 .collect(Collectors.toList());
         response.setGenres(genres);
 
+        return response;
+    }
+
+    private void populateUserAnimeStatus(List<AnimeVO> animeVOList, Long userId) {
+        if (animeVOList == null || animeVOList.isEmpty()) return;
+        List<Long> animeIds = animeVOList.stream().map(AnimeVO::getId).collect(Collectors.toList());
+        List<UserAnimeStatus> statuses = userAnimeStatusRepository.findByUserIdAndAnimeIdIn(userId, animeIds);
+        
+        java.util.Map<Long, UserAnimeStatus> statusMap = statuses.stream()
+                .collect(Collectors.toMap(s -> s.getAnime().getId(), s -> s));
+                
+        for (AnimeVO vo : animeVOList) {
+            UserAnimeStatus status = statusMap.get(vo.getId());
+            if (status != null) {
+                vo.setIsFavorite(status.getIsFavorite());
+                vo.setWatchStatus(status.getWatchStatus() != null ? status.getWatchStatus().name() : null);
+            }
+        }
+    }
+
+    public UpdateAnimeStatusResponseVO updateUserAnimeStatus(UserAnimeStatusRequestVO request) {
+        UpdateAnimeStatusResponseVO response = new UpdateAnimeStatusResponseVO();
+        try {
+            if (request.getUserId() == null || request.getAnimeId() == null) {
+                throw new IllegalArgumentException("User ID and Anime ID are required");
+            }
+
+            com.bu.anime_web.entity.User user = userHelper.getUser(request.getUserId());
+            if (user == null) {
+                throw new IllegalArgumentException("User not found");
+            }
+
+            Anime anime = animeRepository.findById(request.getAnimeId())
+                    .orElseThrow(() -> new IllegalArgumentException("Anime not found"));
+
+            UserAnimeStatus status = userAnimeStatusRepository.findByUserIdAndAnimeId(request.getUserId(), request.getAnimeId())
+                    .orElse(new UserAnimeStatus());
+
+            if (status.getId() == null) {
+                status.setUser(user);
+                status.setAnime(anime);
+            }
+
+            if (request.getIsFavorite() != null) {
+                status.setIsFavorite(request.getIsFavorite());
+            }
+
+            if (request.getWatchStatus() != null) {
+                status.setWatchStatus(WatchStatus.valueOf(request.getWatchStatus()));
+            }
+
+            userAnimeStatusRepository.save(status);
+
+            response.setStatus("success");
+            response.setMessage("Anime status updated successfully");
+        } catch (Exception e) {
+            response.setStatus("error");
+            response.setMessage(e.getMessage());
+        }
         return response;
     }
 }
