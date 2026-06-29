@@ -7,5 +7,6 @@ export const routes: Routes = [
   { path: 'anime/:id', loadComponent: () => import('./anime-detail/anime-detail.component').then(m => m.AnimeDetailComponent) },
   { path: 'login', loadComponent: () => import('./auth/login/login.component').then(m => m.LoginComponent) },
   { path: 'signup', loadComponent: () => import('./auth/sign-up/sign-up.component').then(m => m.SignUpComponent) },
+  { path: 'collection/:type', loadComponent: () => import('./collection/collection.component').then(m => m.CollectionComponent) },
   { path: '**', redirectTo: '' }
 ];

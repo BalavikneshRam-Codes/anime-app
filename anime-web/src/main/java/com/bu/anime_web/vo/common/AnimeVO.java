@@ -6,6 +6,9 @@ import lombok.Data;
 @Data
 public class AnimeVO {
     private Long id;
+    
+    private Long animeId;
+
     private String title;
     private String alternative;
     private String titles;

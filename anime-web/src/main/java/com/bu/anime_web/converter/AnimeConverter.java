@@ -30,10 +30,6 @@ public class AnimeConverter {
         AnimeVO vo = new AnimeVO();
         BeanUtils.copyProperties(anime, vo);
 
-        if (anime.getAnimeId() != null) {
-            vo.setId(anime.getAnimeId());
-        }
-
         vo.setEpisodes(anime.getEpisodesNum());
 
         TermsByType terms = new TermsByType();

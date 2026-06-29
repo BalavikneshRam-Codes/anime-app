@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface UserAnimeStatusRepository extends JpaRepository<UserAnimeStatus, Long> {
     Optional<UserAnimeStatus> findByUserIdAndAnimeId(Long userId, Long animeId);
     java.util.List<UserAnimeStatus> findByUserIdAndAnimeIdIn(Long userId, java.util.Collection<Long> animeIds);
+    org.springframework.data.domain.Page<UserAnimeStatus> findByUserIdAndIsFavoriteTrue(Long userId, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<UserAnimeStatus> findByUserIdAndWatchStatus(Long userId, com.bu.anime_web.entity.WatchStatus watchStatus, org.springframework.data.domain.Pageable pageable);
 }

@@ -8,6 +8,7 @@ import com.bu.anime_web.repository.AnimeCustomRepository;
 import com.bu.anime_web.repository.AnimeRepository;
 import com.bu.anime_web.repository.UserEpisodeProgressRepository;
 import com.bu.anime_web.vo.Request.AnimeRequestVO;
+import com.bu.anime_web.vo.Request.CollectionRequestVO;
 import com.bu.anime_web.vo.Request.LoadAnimeRequestVO;
 import com.bu.anime_web.vo.Request.RecentAnimeRequestVO;
 import com.bu.anime_web.vo.Response.LoadAnimeResponseVO;
@@ -54,7 +55,13 @@ public class AnimeService {
         String pageSizeStr = recentAnimeRequestVO != null ? recentAnimeRequestVO.getPageSize() : null;
         
         Pageable pageable = com.bu.anime_web.helper.PaginationUtil.getPageable(pageNumStr, pageSizeStr);
-        Page<Anime> animePage = animeRepository.findAnimeByLatestEpisodeUpdate(pageable);
+        Page<Anime> animePage;
+        
+        if ("score".equalsIgnoreCase(recentAnimeRequestVO != null ? recentAnimeRequestVO.getSortBy() : null)) {
+            animePage = animeRepository.findAnimeSortedByScore(pageable);
+        } else {
+            animePage = animeRepository.findAnimeByLatestEpisodeUpdate(pageable);
+        }
 
         List<AnimeVO> animeVOList = animePage.getContent().stream()
                 .map(animeConverter::mapToAnimeVO)
@@ -238,6 +245,51 @@ public class AnimeService {
             response.setStatus("error");
             response.setMessage(e.getMessage());
         }
+        return response;
+    }
+
+    public RecentAnimeResponseVO fetchUserCollection(CollectionRequestVO request) {
+        if (request == null || request.getUserId() == null || request.getCollectionType() == null) {
+            throw new IllegalArgumentException("Invalid collection request");
+        }
+
+        int pageNum = request.getPageNum() != null ? Integer.parseInt(request.getPageNum()) : 1;
+        int pageSize = request.getPageSize() != null ? Integer.parseInt(request.getPageSize()) : 20;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                pageNum - 1, 
+                pageSize, 
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "updatedAt")
+        );
+
+        org.springframework.data.domain.Page<UserAnimeStatus> statusPage;
+        if ("favorites".equalsIgnoreCase(request.getCollectionType())) {
+            statusPage = userAnimeStatusRepository.findByUserIdAndIsFavoriteTrue(request.getUserId(), pageable);
+        } else if ("bookmarks".equalsIgnoreCase(request.getCollectionType())) {
+            statusPage = userAnimeStatusRepository.findByUserIdAndWatchStatus(request.getUserId(), WatchStatus.WATCH_LATER, pageable);
+        } else {
+            throw new IllegalArgumentException("Unknown collection type");
+        }
+
+        List<AnimeVO> animeVOs = statusPage.getContent().stream()
+                .map(status -> {
+                    AnimeVO vo = animeConverter.mapToAnimeVO(status.getAnime());
+                    vo.setIsFavorite(status.getIsFavorite());
+                    vo.setWatchStatus(status.getWatchStatus() != null ? status.getWatchStatus().name() : null);
+                    return vo;
+                })
+                .collect(Collectors.toList());
+
+        com.bu.anime_web.vo.common.PageableVO pageableVO = new com.bu.anime_web.vo.common.PageableVO();
+        pageableVO.setPageNumber(pageNum);
+        pageableVO.setPageSize(pageSize);
+        pageableVO.setTotalElements((int) statusPage.getTotalElements());
+        pageableVO.setTotalPages(statusPage.getTotalPages());
+        pageableVO.setLast(statusPage.isLast());
+
+        RecentAnimeResponseVO response = new RecentAnimeResponseVO();
+        response.setAnimeList(animeVOs);
+        response.setPageableVO(pageableVO);
+
         return response;
     }
 }

@@ -4,11 +4,12 @@ import { HttpClient } from '@angular/common/http';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { LoginPromptModalComponent } from '../auth/login-prompt-modal/login-prompt-modal.component';
+import { SidebarMenuComponent } from '../shared/sidebar-menu/sidebar-menu.component';
 
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoginPromptModalComponent],
+  imports: [CommonModule, RouterModule, LoginPromptModalComponent, SidebarMenuComponent],
   templateUrl: './search-results.component.html'
 })
 export class SearchResultsComponent implements OnInit {

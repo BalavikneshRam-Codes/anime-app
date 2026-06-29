@@ -32,8 +32,13 @@ public class AnimeCustomRepositoryImpl implements AnimeCustomRepository {
             query.where(cb.and(predicates.toArray(new Predicate[0])));
         }
 
-        // Apply a default sort by 'id' descending to ensure stable pagination
-        query.orderBy(cb.desc(anime.get("id")));
+        // Apply a default sort or dynamic sort
+        if ("score".equalsIgnoreCase(request.getSortBy())) {
+            Expression<Double> scoreDouble = cb.nullif(anime.get("score"), "").as(Double.class);
+            query.orderBy(cb.desc(scoreDouble));
+        } else {
+            query.orderBy(cb.desc(anime.get("id")));
+        }
 
         TypedQuery<Anime> typedQuery = entityManager.createQuery(query);
 

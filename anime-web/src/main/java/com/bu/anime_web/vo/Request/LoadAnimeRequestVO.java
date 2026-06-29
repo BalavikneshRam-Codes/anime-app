@@ -13,4 +13,5 @@ public class LoadAnimeRequestVO {
     private String status;
     private String pageNum;
     private String pageSize;
+    private String sortBy;
 }

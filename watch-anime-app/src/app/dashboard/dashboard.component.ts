@@ -7,11 +7,12 @@ import { SearchComponent } from '../search/search.component';
 import { AuthService } from '../auth/auth.service';
 import { SignOutModalComponent } from '../auth/sign-out-modal/sign-out-modal.component';
 import { LoginPromptModalComponent } from '../auth/login-prompt-modal/login-prompt-modal.component';
+import { SidebarMenuComponent } from '../shared/sidebar-menu/sidebar-menu.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, SearchComponent, SignOutModalComponent, LoginPromptModalComponent],
+  imports: [CommonModule, RouterModule, SearchComponent, SignOutModalComponent, LoginPromptModalComponent, SidebarMenuComponent],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -26,6 +27,7 @@ export class DashboardComponent implements OnInit {
   filters = signal<any>({ ratings: [], genres: [], seasons: [], types: [], statuses: [] });
   selectedFilters = signal<any>({ rating: '', genre: '', season: '', type: '', status: '' });
   openDropdown = signal<string | null>(null);
+  sortBy = signal<string>('');
 
   private http = inject(HttpClient);
   private elementRef = inject(ElementRef);
@@ -64,6 +66,10 @@ export class DashboardComponent implements OnInit {
     const endpoint = hasFilters ? '/loadAnime' : '/fetchRecentAnimeList';
     const payload: any = { pageNum: page.toString(), pageSize: '20' };
 
+    if (this.sortBy()) {
+      payload.sortBy = this.sortBy();
+    }
+
     if (hasFilters) {
       if (currentFilters.rating) payload.rating = currentFilters.rating;
       if (currentFilters.genre) payload.genres = currentFilters.genre;
@@ -97,6 +103,11 @@ export class DashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  toggleSortByScore() {
+    this.sortBy.set(this.sortBy() === 'score' ? '' : 'score');
+    this.loadPage(1);
   }
 
   toggleFilterDropdown(dropdownName: string) {

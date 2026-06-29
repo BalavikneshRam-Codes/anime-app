@@ -15,8 +15,11 @@ import java.util.Optional;
 public interface AnimeRepository extends JpaRepository<Anime, Long> {
     Optional<Anime> findByAnimeId(Long id);
 
-    @Query("SELECT a FROM Anime a JOIN a.episodesList e GROUP BY a ORDER BY MAX(CAST(e.updateAt AS timestamp)) DESC")
+    @Query("SELECT a FROM Anime a LEFT JOIN a.episodesList e GROUP BY a ORDER BY MAX(CAST(e.updateAt AS timestamp)) DESC NULLS LAST")
     Page<Anime> findAnimeByLatestEpisodeUpdate(Pageable pageable);
+
+    @Query("SELECT a FROM Anime a ORDER BY CAST(NULLIF(a.score, '') AS double) DESC NULLS LAST")
+    Page<Anime> findAnimeSortedByScore(Pageable pageable);
 
     @Query("SELECT DISTINCT a.rating FROM Anime a WHERE a.rating IS NOT NULL")
     List<String> findAllDistinctRatings();
